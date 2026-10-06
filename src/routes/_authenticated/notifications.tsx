@@ -11,7 +11,7 @@ import {
   Inbox,
   ArrowLeft,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { stageLabel } from "@/lib/studio";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,7 +48,7 @@ function NotificationsPage() {
   const list = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("notifications")
         .select("id, kind, team_id, entry_id, mission_id, stage, title, body, read_at, created_at")
         .order("created_at", { ascending: false });
@@ -59,7 +59,7 @@ function NotificationsPage() {
 
   const markAll = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await db
         .from("notifications")
         .update({ read_at: new Date().toISOString() })
         .is("read_at", null);
@@ -70,7 +70,7 @@ function NotificationsPage() {
 
   const markOne = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await db
         .from("notifications")
         .update({ read_at: new Date().toISOString() })
         .eq("id", id);
@@ -165,7 +165,7 @@ function NotificationsPage() {
                     }}
                     className={cn(
                       "group flex items-start gap-4 px-4 py-4 transition-colors hover:bg-muted/60",
-                      !n.read_at && "bg-primary/[0.03]"
+                      !n.read_at && "bg-primary/[0.03]",
                     )}
                   >
                     <div
@@ -173,7 +173,7 @@ function NotificationsPage() {
                         "mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
                         n.kind === "graded_mission_changed"
                           ? "bg-destructive/10 text-destructive"
-                          : "bg-primary/10 text-primary"
+                          : "bg-primary/10 text-primary",
                       )}
                     >
                       <Icon className="h-4 w-4" />

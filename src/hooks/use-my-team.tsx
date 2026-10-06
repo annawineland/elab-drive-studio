@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "./use-auth";
 
 export interface MyTeam {
@@ -20,7 +20,7 @@ export function useMyTeam() {
     queryKey: ["my-team", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("team_members")
         .select(
           "team_id, teams(id, name, mod_id, client_name, project_focus, current_stage, join_code, mods(name))",

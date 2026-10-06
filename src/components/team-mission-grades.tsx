@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { GraduationCap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMissionCriteria, useMissionGrades } from "@/components/mission-grading";
 
@@ -24,7 +24,7 @@ export function TeamMissionGrades({ teamId }: { teamId: string }) {
   const missionsQuery = useQuery({
     queryKey: ["stage-missions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("stage_missions")
         .select("id, stage, title, sort_order")
         .order("sort_order");
@@ -47,10 +47,7 @@ export function TeamMissionGrades({ teamId }: { teamId: string }) {
   }, [gradesQuery.data, missionById, teamId]);
 
   const earned = rows.reduce((s, r) => s + r.grade.total_points, 0);
-  const possible = rows.reduce(
-    (s, r) => s + (r.grade.possible_points || 0),
-    0,
-  );
+  const possible = rows.reduce((s, r) => s + (r.grade.possible_points || 0), 0);
 
   return (
     <Card>
@@ -68,8 +65,8 @@ export function TeamMissionGrades({ teamId }: { teamId: string }) {
       <CardContent className="space-y-3">
         {rows.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No missions graded yet. Scores and teacher notes show up here as soon as
-            your teacher grades a mission response.
+            No missions graded yet. Scores and teacher notes show up here as soon as your teacher
+            grades a mission response.
           </p>
         ) : (
           rows.map(({ grade, mission }) => {
@@ -77,10 +74,7 @@ export function TeamMissionGrades({ teamId }: { teamId: string }) {
               (c) => c.mission_id === grade.mission_id,
             );
             return (
-              <div
-                key={grade.id}
-                className="rounded-md border border-border/70 bg-muted/30 p-3"
-              >
+              <div key={grade.id} className="rounded-md border border-border/70 bg-muted/30 p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <Link
                     to="/notebook"

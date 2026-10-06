@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Link } from "@tanstack/react-router";
 import { FolderOpen, NotebookPen, Target, Users } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useTeamMembers } from "@/hooks/use-team-members";
 import { entryTypeLabel, stageLabel } from "@/lib/studio";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,12 +47,12 @@ export function TeamContributions({ teamId }: { teamId: string }) {
     queryKey: ["team-contributions", teamId],
     queryFn: async () => {
       const [entriesRes, evidenceRes] = await Promise.all([
-        supabase
+        db
           .from("entries")
           .select("id, user_id, title, content, entry_type, stage, mission_id, created_at")
           .eq("team_id", teamId)
           .order("created_at", { ascending: false }),
-        supabase
+        db
           .from("evidence")
           .select("id, user_id, title, description, evidence_type, url, stage, created_at")
           .eq("team_id", teamId)
@@ -90,7 +90,11 @@ export function TeamContributions({ teamId }: { teamId: string }) {
   const recent = useMemo(() => {
     const items = [
       ...(work.data?.entries ?? []).map((e) => ({ kind: "entry" as const, at: e.created_at, e })),
-      ...(work.data?.evidence ?? []).map((e) => ({ kind: "evidence" as const, at: e.created_at, e })),
+      ...(work.data?.evidence ?? []).map((e) => ({
+        kind: "evidence" as const,
+        at: e.created_at,
+        e,
+      })),
     ];
     return items.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 12);
   }, [work.data]);

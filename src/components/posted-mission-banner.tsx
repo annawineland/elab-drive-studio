@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { CheckCircle2, Target } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { parseMissionDescription } from "@/lib/mission-attachment";
@@ -10,8 +10,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { MissionNotes } from "@/components/mission-feedback";
 import { VocabText } from "@/components/vocab-text";
-
-
 
 /**
  * Shown in the Design Notebook when a student (or teacher) arrives from a
@@ -26,7 +24,7 @@ export function PostedMissionBanner({ missionId }: { missionId: string }) {
   const mission = useQuery({
     queryKey: ["posted-mission", missionId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("missions")
         .select("id, title, description, stage, due_date")
         .eq("id", missionId)
@@ -40,7 +38,7 @@ export function PostedMissionBanner({ missionId }: { missionId: string }) {
     queryKey: ["posted-mission-completion", missionId, team?.id],
     enabled: !!team,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mission_completions")
         .select("id, completed_at")
         .eq("mission_id", missionId)
@@ -54,12 +52,12 @@ export function PostedMissionBanner({ missionId }: { missionId: string }) {
   const toggle = useMutation({
     mutationFn: async (done: boolean) => {
       if (done) {
-        const { error } = await supabase
+        const { error } = await db
           .from("mission_completions")
           .insert({ mission_id: missionId, team_id: team!.id, completed_by: user!.id });
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await db
           .from("mission_completions")
           .delete()
           .eq("mission_id", missionId)
@@ -98,12 +96,7 @@ export function PostedMissionBanner({ missionId }: { missionId: string }) {
           <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
             Posted mission
           </p>
-          <h3
-            className={cn(
-              "text-sm font-semibold",
-              done && "text-muted-foreground line-through",
-            )}
-          >
+          <h3 className={cn("text-sm font-semibold", done && "text-muted-foreground line-through")}>
             {mission.data.title}
           </h3>
           {parsed.text && (
@@ -131,7 +124,6 @@ export function PostedMissionBanner({ missionId }: { missionId: string }) {
           </p>
           <MissionNotes missionId={missionId} teamId={team?.id} />
         </div>
-
       </CardContent>
     </Card>
   );

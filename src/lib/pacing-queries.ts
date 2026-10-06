@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 
 export interface PacingWeek {
   id: string;
@@ -23,7 +23,7 @@ export const pacingWeeksQueryOptions = () =>
   queryOptions({
     queryKey: PACING_WEEKS_KEY,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("pacing_weeks")
         .select(
           "id, week_number, start_date, end_date, focus, stage, milestones, deliverables, updated_at",
@@ -42,7 +42,7 @@ export const teamPacingWeeksQueryOptions = (teamId?: string) =>
     queryKey: [...TEAM_PACING_KEY, teamId],
     enabled: !!teamId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("team_pacing_weeks")
         .select(
           "id, week_number, start_date, end_date, focus, stage, milestones, deliverables, updated_at",

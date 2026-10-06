@@ -1,5 +1,5 @@
 import { queryOptions } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import type { ResourceDocRow } from "@/lib/resource-doc-format";
 
 export const RESOURCE_DOCS_KEY = ["resource-docs"] as const;
@@ -9,7 +9,7 @@ export const resourceDocsQueryOptions = () =>
   queryOptions({
     queryKey: RESOURCE_DOCS_KEY,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("resource_docs")
         .select("id, slug, kind, title, summary, stage, sort_order, body, updated_at")
         .order("sort_order", { ascending: true });

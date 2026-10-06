@@ -17,7 +17,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { TeacherOnly } from "@/components/teacher-only";
 import { WORKFLOW_STAGES, entryTypeLabel, stageLabel } from "@/lib/studio";
@@ -56,14 +56,9 @@ export const Route = createFileRoute("/_authenticated/review/$teamId")({
   validateSearch: (
     search: Record<string, unknown>,
   ): { stage?: string; student?: string; view?: "feed" } => ({
-    stage:
-      typeof search.stage === "string" && search.stage.length > 0
-        ? search.stage
-        : undefined,
+    stage: typeof search.stage === "string" && search.stage.length > 0 ? search.stage : undefined,
     student:
-      typeof search.student === "string" && search.student.length > 0
-        ? search.student
-        : undefined,
+      typeof search.student === "string" && search.student.length > 0 ? search.student : undefined,
     view: search.view === "feed" ? "feed" : undefined,
   }),
   head: () => ({
@@ -130,10 +125,7 @@ function TeamNotebookReviewPage() {
   const guides = useQuery({
     queryKey: ["stage-guides"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stage_guides")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await db.from("stage_guides").select("*").order("sort_order");
       if (error) throw error;
       return data as StageGuide[];
     },
@@ -142,10 +134,7 @@ function TeamNotebookReviewPage() {
   const missions = useQuery({
     queryKey: ["stage-missions"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stage_missions")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await db.from("stage_missions").select("*").order("sort_order");
       if (error) throw error;
       return data as StageMission[];
     },
@@ -154,10 +143,7 @@ function TeamNotebookReviewPage() {
   const targets = useQuery({
     queryKey: ["learning-targets"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("learning_targets")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await db.from("learning_targets").select("*").order("sort_order");
       if (error) throw error;
       return data as LearningTarget[];
     },
@@ -166,10 +152,7 @@ function TeamNotebookReviewPage() {
   const criteria = useQuery({
     queryKey: ["rubric-criteria"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("rubric_criteria")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await db.from("rubric_criteria").select("*").order("sort_order");
       if (error) throw error;
       return data as RubricCriterion[];
     },
@@ -178,14 +161,14 @@ function TeamNotebookReviewPage() {
   const review = useQuery({
     queryKey: ["team-review", teamId],
     queryFn: async () => {
-      const { data: team, error: tErr } = await supabase
+      const { data: team, error: tErr } = await db
         .from("teams")
         .select("id, name, client_name, project_focus, current_stage, mods(name)")
         .eq("id", teamId)
         .single();
       if (tErr) throw tErr;
 
-      const { data: mems, error: mErr } = await supabase
+      const { data: mems, error: mErr } = await db
         .from("team_members")
         .select("user_id, member_role")
         .eq("team_id", teamId);
@@ -195,12 +178,12 @@ function TeamNotebookReviewPage() {
       // Entries filed under the team, plus pre-team work by current members.
       const { data: entryRows, error: eErr } =
         memberIds.length > 0
-          ? await supabase
+          ? await db
               .from("entries")
               .select("*")
               .or(`team_id.eq.${teamId},user_id.in.(${memberIds.join(",")})`)
               .order("created_at", { ascending: false })
-          : await supabase
+          : await db
               .from("entries")
               .select("*")
               .eq("team_id", teamId)
@@ -212,7 +195,7 @@ function TeamNotebookReviewPage() {
       const authorIds = [...new Set([...memberIds, ...entries.map((e) => e.user_id)])];
       const { data: profs, error: pErr } =
         authorIds.length > 0
-          ? await supabase.from("profiles").select("id, full_name").in("id", authorIds)
+          ? await db.from("profiles").select("id, full_name").in("id", authorIds)
           : { data: [], error: null };
       if (pErr) throw pErr;
       const nameById = Object.fromEntries(
@@ -222,7 +205,7 @@ function TeamNotebookReviewPage() {
       const entryIds = entries.map((e) => e.id);
       const { data: feedbackRows, error: fErr } =
         entryIds.length > 0
-          ? await supabase
+          ? await db
               .from("feedback")
               .select("id, entry_id, content, created_at")
               .in("entry_id", entryIds)
@@ -231,11 +214,11 @@ function TeamNotebookReviewPage() {
 
       const { data: scoreRows, error: sErr } =
         memberIds.length > 0
-          ? await supabase
+          ? await db
               .from("rubric_scores")
               .select("*")
               .or(`team_id.eq.${teamId},student_id.in.(${memberIds.join(",")})`)
-          : await supabase.from("rubric_scores").select("*").eq("team_id", teamId);
+          : await db.from("rubric_scores").select("*").eq("team_id", teamId);
       if (sErr) throw sErr;
 
       return {
@@ -344,15 +327,12 @@ function TeamNotebookReviewPage() {
   const [scoreNote, setScoreNote] = useState("");
 
   const existingScore = (entryId: string, targetId: string) =>
-    (review.data?.scores ?? []).find(
-      (s) => s.entry_id === entryId && s.target_id === targetId,
-    );
+    (review.data?.scores ?? []).find((s) => s.entry_id === entryId && s.target_id === targetId);
 
   const openScore = (e: ReviewEntry) => {
     const stageTargetIds = new Set(stageTargets.map((t) => t.id));
     const preferred =
-      (targets.data ?? []).find((t) => stageTargetIds.has(t.id)) ??
-      (targets.data ?? [])[0];
+      (targets.data ?? []).find((t) => stageTargetIds.has(t.id)) ?? (targets.data ?? [])[0];
     const targetId = preferred?.id ?? "";
     const existing = existingScore(e.id, targetId);
     setScoringEntry(e);
@@ -373,13 +353,13 @@ function TeamNotebookReviewPage() {
       if (!scoringEntry || !scoreTarget) throw new Error("Pick a learning target");
       const existing = existingScore(scoringEntry.id, scoreTarget);
       if (existing) {
-        const { error } = await supabase
+        const { error } = await db
           .from("rubric_scores")
           .update({ level: scoreLevel, note: scoreNote.trim() })
           .eq("id", existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("rubric_scores").insert({
+        const { error } = await db.from("rubric_scores").insert({
           target_id: scoreTarget,
           teacher_id: user!.id,
           student_id: scoringEntry.user_id,
@@ -409,14 +389,14 @@ function TeamNotebookReviewPage() {
     mutationFn: async () => {
       if (!feedbackEntry) return;
       if (editingFeedback) {
-        const { error } = await supabase
+        const { error } = await db
           .from("feedback")
           .update({ content: feedbackText.trim() })
           .eq("id", editingFeedback.id);
         if (error) throw error;
         return;
       }
-      const { error } = await supabase.from("feedback").insert({
+      const { error } = await db.from("feedback").insert({
         author_id: user!.id,
         target_user_id: feedbackEntry.user_id,
         team_id: teamId,
@@ -442,7 +422,7 @@ function TeamNotebookReviewPage() {
 
   const deleteFeedback = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("feedback").delete().eq("id", id);
+      const { error } = await db.from("feedback").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -492,15 +472,13 @@ function TeamNotebookReviewPage() {
         <PageHeader
           eyebrow={team?.mods?.name ?? "Team notebook review"}
           title={team ? `${team.name} — Notebook` : "Team notebook"}
-          description={
-            [
-              team?.client_name && `Client: ${team.client_name}`,
-              team?.project_focus,
-              "Read entries, score against rubrics, and leave feedback — students see scores and notes immediately.",
-            ]
-              .filter(Boolean)
-              .join(" · ")
-          }
+          description={[
+            team?.client_name && `Client: ${team.client_name}`,
+            team?.project_focus,
+            "Read entries, score against rubrics, and leave feedback — students see scores and notes immediately.",
+          ]
+            .filter(Boolean)
+            .join(" · ")}
           actions={
             <div className="flex flex-wrap items-center gap-2">
               {/* Student filter */}
@@ -572,8 +550,7 @@ function TeamNotebookReviewPage() {
           <div className="space-y-3">
             <p className="text-label text-muted-foreground">
               {entries.length} {entries.length === 1 ? "entry" : "entries"}
-              {studentParam ? ` by ${authorName(studentParam)}` : " across the team"} ·
-              newest first
+              {studentParam ? ` by ${authorName(studentParam)}` : " across the team"} · newest first
             </p>
             {entries.length === 0 ? (
               <p className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">
@@ -702,13 +679,10 @@ function TeamNotebookReviewPage() {
                     const score = studentParam
                       ? (review.data?.scores ?? []).find(
                           (s) =>
-                            s.target_id === t.id &&
-                            s.student_id === studentParam &&
-                            !s.entry_id,
+                            s.target_id === t.id && s.student_id === studentParam && !s.entry_id,
                         )
                       : (review.data?.scores ?? []).find(
-                          (s) =>
-                            s.target_id === t.id && s.team_id === teamId && !s.entry_id,
+                          (s) => s.target_id === t.id && s.team_id === teamId && !s.entry_id,
                         );
                     return (
                       <TargetRubricSummary
@@ -848,7 +822,10 @@ function TeamNotebookReviewPage() {
                     {(criteria.data ?? [])
                       .filter((c) => c.target_id === scoreTarget && c.level === scoreLevel)
                       .map((c) => (
-                        <li key={c.id} className="flex items-start gap-2 text-xs text-muted-foreground">
+                        <li
+                          key={c.id}
+                          className="flex items-start gap-2 text-xs text-muted-foreground"
+                        >
                           <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" />
                           {c.criterion}
                         </li>
@@ -1001,9 +978,7 @@ function EntryReviewCard({
           </div>
         </div>
 
-        <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">
-          {entry.content}
-        </p>
+        <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{entry.content}</p>
 
         {scores.length > 0 && (
           <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
@@ -1012,7 +987,10 @@ function EntryReviewCard({
                 <RubricLevelChip level={s.level} />
                 <span className="text-xs text-muted-foreground">{targetTitle(s.target_id)}</span>
                 {s.note && (
-                  <span className="max-w-64 truncate text-xs italic text-muted-foreground" title={s.note}>
+                  <span
+                    className="max-w-64 truncate text-xs italic text-muted-foreground"
+                    title={s.note}
+                  >
                     “{s.note}”
                   </span>
                 )}
@@ -1029,8 +1007,7 @@ function EntryReviewCard({
                 className="flex items-start gap-2 rounded-md border border-border bg-muted/50 px-3 py-2"
               >
                 <p className="flex-1 text-xs text-muted-foreground">
-                  <span className="font-semibold text-foreground">Your feedback:</span>{" "}
-                  {f.content}
+                  <span className="font-semibold text-foreground">Your feedback:</span> {f.content}
                 </p>
                 <div className="flex shrink-0 gap-0.5">
                   <Button
@@ -1062,4 +1039,3 @@ function EntryReviewCard({
     </Card>
   );
 }
-

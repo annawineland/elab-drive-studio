@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { Bell, CheckCheck, PencilLine, AlertTriangle, FilePlus2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { stageLabel } from "@/lib/studio";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -36,7 +36,7 @@ export function NotificationBell() {
   const list = useQuery({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("notifications")
         .select("id, kind, team_id, entry_id, mission_id, stage, title, body, read_at, created_at")
         .order("created_at", { ascending: false })
@@ -48,7 +48,7 @@ export function NotificationBell() {
   });
 
   useEffect(() => {
-    const channel = supabase
+    const channel = db
       .channel(`notifications-bell-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
@@ -57,13 +57,13 @@ export function NotificationBell() {
       )
       .subscribe();
     return () => {
-      void supabase.removeChannel(channel);
+      void db.removeChannel(channel);
     };
   }, [queryClient]);
 
   const markAll = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await db
         .from("notifications")
         .update({ read_at: new Date().toISOString() })
         .is("read_at", null);
@@ -74,7 +74,7 @@ export function NotificationBell() {
 
   const markOne = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await db
         .from("notifications")
         .update({ read_at: new Date().toISOString() })
         .eq("id", id);

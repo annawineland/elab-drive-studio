@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO, subDays } from "date-fns";
 import { AlertTriangle, CheckCircle2, CircleDashed, Gauge, Target } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { TeacherOnly } from "@/components/teacher-only";
 import { PageHeader, StatCard, EmptyState, StageBadge } from "@/components/studio-ui";
 import { Card, CardContent } from "@/components/ui/card";
@@ -50,7 +50,7 @@ function ProgressPage() {
   const mods = useQuery({
     queryKey: ["progress-mods"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mods")
         .select("id, name, sort_order")
         .order("sort_order");
@@ -62,7 +62,7 @@ function ProgressPage() {
   const teams = useQuery({
     queryKey: ["progress-teams"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("teams")
         .select("id, name, mod_id, current_stage")
         .order("name");
@@ -74,7 +74,7 @@ function ProgressPage() {
   const missions = useQuery({
     queryKey: ["progress-missions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("missions")
         .select("id, title, stage, mod_id, mission_date, due_date, past_due_at")
         .order("mission_date", { ascending: false });
@@ -86,7 +86,7 @@ function ProgressPage() {
   const completions = useQuery({
     queryKey: ["progress-completions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mission_completions")
         .select("mission_id, team_id, completed_at");
       if (error) throw error;
@@ -113,8 +113,7 @@ function ProgressPage() {
   const teamsFor = (modId: string | null) =>
     (teams.data ?? []).filter(
       (t) =>
-        (modId === null || t.mod_id === modId) &&
-        (modFilter === "all" || t.mod_id === modFilter),
+        (modId === null || t.mod_id === modId) && (modFilter === "all" || t.mod_id === modFilter),
     );
 
   const rows = visibleMissions
@@ -143,8 +142,7 @@ function ProgressPage() {
   ).length;
   const pct = totalPairs === 0 ? 0 : Math.round((donePairs / totalPairs) * 100);
 
-  const loading =
-    missions.isLoading || teams.isLoading || completions.isLoading || mods.isLoading;
+  const loading = missions.isLoading || teams.isLoading || completions.isLoading || mods.isLoading;
 
   return (
     <TeacherOnly>
@@ -269,7 +267,11 @@ function ProgressPage() {
                                 ? "border-primary/30 bg-primary/10 text-primary"
                                 : "border-border bg-muted/40 text-muted-foreground hover:bg-muted",
                             )}
-                            title={at ? `Checked off ${format(new Date(at), "MMM d, h:mm a")}` : "Not checked off"}
+                            title={
+                              at
+                                ? `Checked off ${format(new Date(at), "MMM d, h:mm a")}`
+                                : "Not checked off"
+                            }
                           >
                             {at ? (
                               <CheckCircle2 className="h-3.5 w-3.5" />

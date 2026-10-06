@@ -25,7 +25,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { signOut } from "@/integrations/firebase/auth";
 import type { AppRole } from "@/hooks/use-auth";
 import { NotificationBell } from "@/components/notification-bell";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -169,7 +169,7 @@ export function AppShell({
   async function handleSignOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    await signOut();
     navigate({ to: "/auth", replace: true });
   }
 

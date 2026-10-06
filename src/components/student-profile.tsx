@@ -2,14 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, parseISO } from "date-fns";
 import { Link } from "@tanstack/react-router";
-import {
-  CalendarCheck,
-  CheckCircle2,
-  NotebookPen,
-  Target,
-  TrendingUp,
-  Vault,
-} from "lucide-react";
+import { CalendarCheck, CheckCircle2, NotebookPen, Target, TrendingUp, Vault } from "lucide-react";
 import {
   CartesianGrid,
   Line,
@@ -19,7 +12,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { entryTypeLabel, stageLabel } from "@/lib/studio";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -76,7 +69,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
   const profile = useQuery({
     queryKey: ["profile-basic", studentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("profiles")
         .select("id, full_name")
         .eq("id", studentId)
@@ -89,19 +82,21 @@ export function StudentProfile({ studentId }: { studentId: string }) {
   const team = useQuery({
     queryKey: ["profile-team", studentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("team_members")
         .select("team_id, teams(id, name, current_stage, mods(name))")
         .eq("user_id", studentId)
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return (data?.teams as unknown as {
-        id: string;
-        name: string;
-        current_stage: string;
-        mods: { name: string } | null;
-      } | null) ?? null;
+      return (
+        (data?.teams as unknown as {
+          id: string;
+          name: string;
+          current_stage: string;
+          mods: { name: string } | null;
+        } | null) ?? null
+      );
     },
   });
 
@@ -110,7 +105,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
   const entries = useQuery({
     queryKey: ["profile-entries", studentId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("entries")
         .select("id, title, content, entry_type, stage, mission_id, created_at")
         .eq("user_id", studentId)
@@ -123,7 +118,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
   const evidenceCount = useQuery({
     queryKey: ["profile-evidence-count", studentId],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { count, error } = await db
         .from("evidence")
         .select("id", { count: "exact", head: true })
         .eq("user_id", studentId);
@@ -136,9 +131,11 @@ export function StudentProfile({ studentId }: { studentId: string }) {
     queryKey: ["profile-completions", teamId],
     enabled: !!teamId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mission_completions")
-        .select("id, mission_id, completed_by, completed_at, missions(title, mission_date, due_date)")
+        .select(
+          "id, mission_id, completed_by, completed_at, missions(title, mission_date, due_date)",
+        )
         .eq("team_id", teamId!)
         .order("completed_at", { ascending: false });
       if (error) throw error;
@@ -150,7 +147,7 @@ export function StudentProfile({ studentId }: { studentId: string }) {
     queryKey: ["profile-grades", teamId],
     enabled: !!teamId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mission_grades")
         .select(
           "id, mission_id, total_points, possible_points, feedback, updated_at, stage_missions(title, stage)",

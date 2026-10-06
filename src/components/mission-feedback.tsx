@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MessageSquare, Pencil, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,7 +35,7 @@ function useMissionNotes(missionId: string, teamId?: string | null) {
   return useQuery({
     queryKey: ["mission-feedback", missionId, teamId ?? "all"],
     queryFn: async () => {
-      let q = supabase
+      let q = db
         .from("feedback")
         .select("id, content, created_at, team_id, author_id")
         .eq("mission_id", missionId)
@@ -106,14 +106,11 @@ export function MissionFeedbackDialog({
       const text = content.trim();
       if (!text) throw new Error("Write a note first");
       if (editingId) {
-        const { error } = await supabase
-          .from("feedback")
-          .update({ content: text })
-          .eq("id", editingId);
+        const { error } = await db.from("feedback").update({ content: text }).eq("id", editingId);
         if (error) throw error;
       } else {
         if (!teamId) throw new Error("Pick a team");
-        const { error } = await supabase.from("feedback").insert({
+        const { error } = await db.from("feedback").insert({
           author_id: user!.id,
           team_id: teamId,
           mission_id: missionId,
@@ -133,7 +130,7 @@ export function MissionFeedbackDialog({
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("feedback").delete().eq("id", id);
+      const { error } = await db.from("feedback").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
@@ -15,16 +15,18 @@ import {
   Unplug,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { WORKFLOW_STAGES } from "@/lib/studio";
 import {
+  connectGoogleDrive,
+  disconnectGoogleDrive,
+  driveConfigured,
   getStudentDriveStatus,
-  startStudentDriveConnect,
   listStudentDriveFiles,
-  disconnectStudentDrive,
-} from "@/lib/studentDrive.functions";
+  preloadGoogleDrive,
+} from "@/lib/google-drive";
 import { PageHeader, EmptyState, StageBadge } from "@/components/studio-ui";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,7 +56,8 @@ export const Route = createFileRoute("/_authenticated/evidence")({
       { title: "Evidence Vault — Engineering Studio" },
       {
         name: "description",
-        content: "Photos, links, and Drive files that prove your engineering work — organized by stage.",
+        content:
+          "Photos, links, and Drive files that prove your engineering work — organized by stage.",
       },
       { property: "og:title", content: "Evidence Vault — Engineering Studio" },
       { property: "og:type", content: "website" },
@@ -83,39 +86,6 @@ const TYPE_ICONS: Record<string, typeof Link2> = {
   note: StickyNote,
   drive: HardDrive,
 };
-
-function waitForOAuthCompletion(popup: Window) {
-  return new Promise<void>((resolve, reject) => {
-    let poll: number | undefined;
-    const cleanup = () => {
-      window.removeEventListener("message", onMessage);
-      if (poll !== undefined) window.clearInterval(poll);
-    };
-    const onMessage = (event: MessageEvent) => {
-      const type = event.data?.type;
-      if (
-        event.origin !== window.location.origin ||
-        event.source !== popup ||
-        event.data?.connectorId !== "google_drive" ||
-        (type !== "appUserConnectorOAuthComplete" && type !== "appUserConnectorOAuthFailed")
-      )
-        return;
-      cleanup();
-      if (type === "appUserConnectorOAuthComplete") {
-        resolve();
-        return;
-      }
-      popup.close();
-      reject(new Error("Google Drive connection was not completed."));
-    };
-    window.addEventListener("message", onMessage);
-    poll = window.setInterval(() => {
-      if (!popup.closed) return;
-      cleanup();
-      reject(new Error("OAuth window closed before completion."));
-    }, 500);
-  });
-}
 
 function EvidencePage() {
   const { user, role } = useAuth();
@@ -147,10 +117,7 @@ function EvidencePage() {
   const evidence = useQuery({
     queryKey: ["evidence", user!.id, team?.id, tab],
     queryFn: async () => {
-      let q = supabase
-        .from("evidence")
-        .select("*")
-        .order("created_at", { ascending: false });
+      let q = db.from("evidence").select("*").order("created_at", { ascending: false });
       if (tab === "mine") q = q.eq("user_id", user!.id);
       else if (tab === "team" && team) q = q.eq("team_id", team.id);
       const { data, error } = await q;
@@ -161,9 +128,9 @@ function EvidencePage() {
       const userIds = [...new Set(items.map((i) => i.user_id))];
       const teamIds = [...new Set(items.map((i) => i.team_id).filter(Boolean))] as string[];
       const [profs, teams] = await Promise.all([
-        supabase.from("profiles").select("id, full_name").in("id", userIds),
+        db.from("profiles").select("id, full_name").in("id", userIds),
         teamIds.length
-          ? supabase.from("teams").select("id, name").in("id", teamIds)
+          ? db.from("teams").select("id, name").in("id", teamIds)
           : Promise.resolve({ data: [] as { id: string; name: string }[] }),
       ]);
       const nameById = new Map((profs.data ?? []).map((p) => [p.id, p.full_name]));
@@ -184,7 +151,7 @@ function EvidencePage() {
       stage: string;
       description: string;
     }) => {
-      const { error } = await supabase.from("evidence").insert({
+      const { error } = await db.from("evidence").insert({
         ...item,
         user_id: user!.id,
         team_id: team?.id ?? null,
@@ -205,7 +172,7 @@ function EvidencePage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("evidence").delete().eq("id", id);
+      const { error } = await db.from("evidence").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -217,7 +184,7 @@ function EvidencePage() {
   });
 
   const disconnect = useMutation({
-    mutationFn: () => disconnectStudentDrive(),
+    mutationFn: () => disconnectGoogleDrive(),
     onSuccess: () => {
       toast.success("Google Drive disconnected");
       queryClient.invalidateQueries({ queryKey: ["student-drive-status"] });
@@ -225,22 +192,18 @@ function EvidencePage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  // Load Google's sign-in script up front so Connect opens its popup on the click.
+  useEffect(() => {
+    if (driveConfigured()) preloadGoogleDrive().catch(() => {});
+  }, []);
+
   async function connectDrive() {
-    const popup = window.open("", "lovable-oauth", "width=600,height=720");
-    if (!popup) {
-      toast.error("Popup blocked. Allow popups and try again.");
-      return;
-    }
     setConnecting(true);
     try {
-      const { authorizationUrl } = await startStudentDriveConnect();
-      const completion = waitForOAuthCompletion(popup);
-      popup.location.href = authorizationUrl;
-      await completion;
+      await connectGoogleDrive();
       toast.success("Google Drive connected");
       queryClient.invalidateQueries({ queryKey: ["student-drive-status"] });
     } catch (err) {
-      popup.close();
       toast.error(err instanceof Error ? err.message : "Could not connect Google Drive");
     } finally {
       setConnecting(false);
@@ -490,9 +453,7 @@ function EvidencePage() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Attach from Google Drive</DialogTitle>
-            <DialogDescription>
-              Pick a file to add it to your evidence vault.
-            </DialogDescription>
+            <DialogDescription>Pick a file to add it to your evidence vault.</DialogDescription>
           </DialogHeader>
           <div className="max-h-80 space-y-1.5 overflow-y-auto">
             {driveFiles.isLoading && (

@@ -21,7 +21,7 @@ import {
 } from "@/lib/resource-doc-format";
 import { RESOURCE_DOCS_KEY, resourceDocsQueryOptions } from "@/lib/resource-queries";
 import { stageLabel, WORKFLOW_STAGES } from "@/lib/studio";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PageHeader } from "@/components/studio-ui";
 import {
@@ -140,13 +140,7 @@ const FORMAT_HELP: Array<[string, string]> = [
 ];
 
 /** Teacher editing form with a live preview of the parsed document. */
-function ResourceEditor({
-  doc,
-  onDone,
-}: {
-  doc: ResourceDocRow;
-  onDone: () => void;
-}) {
+function ResourceEditor({ doc, onDone }: { doc: ResourceDocRow; onDone: () => void }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -161,7 +155,7 @@ function ResourceEditor({
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await db
         .from("resource_docs")
         .update({
           title: title.trim(),
@@ -184,7 +178,7 @@ function ResourceEditor({
 
   const remove = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("resource_docs").delete().eq("id", doc.id);
+      const { error } = await db.from("resource_docs").delete().eq("id", doc.id);
       if (error) throw error;
     },
     onSuccess: () => {

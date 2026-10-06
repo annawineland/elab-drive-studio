@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { MessageSquare, Target } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { PageHeader, EmptyState } from "@/components/studio-ui";
@@ -33,15 +33,15 @@ function FeedbackPage() {
     queryFn: async () => {
       const clauses = [`target_user_id.eq.${user!.id}`];
       if (team) clauses.push(`team_id.eq.${team.id}`);
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("feedback")
         .select("*, missions:mission_id (title)")
         .or(clauses.join(","))
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as (typeof data & {
+      return data as typeof data & {
         missions?: { title: string } | null;
-      });
+      };
     },
   });
 

@@ -10,7 +10,7 @@ import {
   Users,
   UsersRound,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { TeacherOnly } from "@/components/teacher-only";
 import { PageHeader, StatCard, EmptyState } from "@/components/studio-ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,7 +22,8 @@ export const Route = createFileRoute("/_authenticated/control/")({
       { title: "Mission Control — Engineering Studio" },
       {
         name: "description",
-        content: "Teacher overview: engagement, teams, pending requests, and students who need a nudge.",
+        content:
+          "Teacher overview: engagement, teams, pending requests, and students who need a nudge.",
       },
       { property: "og:title", content: "Mission Control — Engineering Studio" },
       { property: "og:type", content: "website" },
@@ -36,14 +37,14 @@ function ControlOverview() {
   const students = useQuery({
     queryKey: ["control-students"],
     queryFn: async () => {
-      const { data: roles, error } = await supabase
+      const { data: roles, error } = await db
         .from("user_roles")
         .select("user_id")
         .eq("role", "student");
       if (error) throw error;
       const ids = (roles ?? []).map((r) => r.user_id);
       if (ids.length === 0) return [] as { id: string; full_name: string }[];
-      const { data: profs, error: pErr } = await supabase
+      const { data: profs, error: pErr } = await db
         .from("profiles")
         .select("id, full_name")
         .in("id", ids);
@@ -55,7 +56,7 @@ function ControlOverview() {
   const teams = useQuery({
     queryKey: ["control-teams"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("teams")
         .select("id, name, current_stage, mod_id, mods(name, sort_order)")
         .order("created_at", { ascending: true });
@@ -67,7 +68,7 @@ function ControlOverview() {
   const pendingRequests = useQuery({
     queryKey: ["control-pending-requests"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("requests")
         .select("*")
         .eq("status", "pending")
@@ -81,7 +82,7 @@ function ControlOverview() {
     queryKey: ["control-missions-today"],
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("missions")
         .select("id, title, mods(name)")
         .eq("mission_date", today);
@@ -95,8 +96,8 @@ function ControlOverview() {
     queryFn: async () => {
       const since = subDays(new Date(), 7).toISOString();
       const [entries, evidence] = await Promise.all([
-        supabase.from("entries").select("user_id").gte("created_at", since),
-        supabase.from("evidence").select("user_id"),
+        db.from("entries").select("user_id").gte("created_at", since),
+        db.from("evidence").select("user_id"),
       ]);
       if (entries.error) throw entries.error;
       if (evidence.error) throw evidence.error;
@@ -111,9 +112,7 @@ function ControlOverview() {
   const activeCount = (students.data ?? []).filter((s) =>
     engagement.data?.activeIds.has(s.id),
   ).length;
-  const noEvidence = (students.data ?? []).filter(
-    (s) => !engagement.data?.evidenceIds.has(s.id),
-  );
+  const noEvidence = (students.data ?? []).filter((s) => !engagement.data?.evidenceIds.has(s.id));
 
   return (
     <TeacherOnly>
@@ -264,7 +263,10 @@ function ControlOverview() {
               )}
               {(() => {
                 const all = teams.data ?? [];
-                const byMod = new Map<string, { label: string; order: number; teams: typeof all }>();
+                const byMod = new Map<
+                  string,
+                  { label: string; order: number; teams: typeof all }
+                >();
                 for (const t of all) {
                   const key = t.mod_id ?? "none";
                   if (!byMod.has(key)) {

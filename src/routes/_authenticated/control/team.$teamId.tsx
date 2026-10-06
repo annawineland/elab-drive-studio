@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ArrowLeft, ClipboardList, KanbanSquare, NotebookPen } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { TASK_STATUSES } from "@/lib/studio";
 import { PageHeader, EmptyState, StatusBadge, StageBadge } from "@/components/studio-ui";
 import { TeacherOnly } from "@/components/teacher-only";
@@ -37,23 +37,19 @@ function TeamWorkspacePage() {
     queryKey: ["team-workspace", teamId],
     queryFn: async () => {
       const [teamRes, sprintRes, taskRes, minuteRes, memberRes] = await Promise.all([
-        supabase.from("teams").select("*, mods(name)").eq("id", teamId).maybeSingle(),
-        supabase
+        db.from("teams").select("*, mods(name)").eq("id", teamId).maybeSingle(),
+        db
           .from("sprints")
           .select("*")
           .eq("team_id", teamId)
           .order("created_at", { ascending: true }),
-        supabase
-          .from("tasks")
-          .select("*")
-          .eq("team_id", teamId)
-          .order("created_at", { ascending: true }),
-        supabase
+        db.from("tasks").select("*").eq("team_id", teamId).order("created_at", { ascending: true }),
+        db
           .from("meeting_minutes")
           .select("*")
           .eq("team_id", teamId)
           .order("meeting_date", { ascending: false }),
-        supabase.from("team_members").select("user_id").eq("team_id", teamId),
+        db.from("team_members").select("user_id").eq("team_id", teamId),
       ]);
       if (teamRes.error) throw teamRes.error;
       if (sprintRes.error) throw sprintRes.error;
@@ -64,10 +60,7 @@ function TeamWorkspacePage() {
       const ids = (memberRes.data ?? []).map((m) => m.user_id);
       const nameById: Record<string, string> = {};
       if (ids.length) {
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("id, full_name")
-          .in("id", ids);
+        const { data: profiles } = await db.from("profiles").select("id, full_name").in("id", ids);
         for (const p of profiles ?? []) nameById[p.id] = p.full_name;
       }
 

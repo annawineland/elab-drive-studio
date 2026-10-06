@@ -1,0 +1,347 @@
+rules_version = '2';
+
+// The row-level security policies from supabase/migrations, for Firestore.
+//
+// The app limits every query to what these rules allow (scopeFor in
+// src/integrations/firebase/access.ts), so change the two together.
+// Deploy with: npx firebase-tools deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- Who is asking
+
+    // Signed in with a confirmed email. Supabase gave unconfirmed accounts no session.
+    function signedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function uid() {
+      return request.auth.uid;
+    }
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+    function path(collection, id) {
+      return /databases/$(database)/documents/$(collection)/$(id);
+    }
+    function roleIsTeacher(userId) {
+      let role = path('user_roles', userId);
+      return exists(role) && get(role).data.role == 'teacher';
+    }
+    function isTeacher() {
+      return signedIn() && roleIsTeacher(uid());
+    }
+    // Memberships are stored at team_members/{teamId}_{userId}.
+    function isMember(teamId) {
+      return teamId != null && exists(path('team_members', teamId + '_' + uid()));
+    }
+    // Roster spots are stored at mod_enrollments/{modId}_{email}.
+    function isModMember(modId) {
+      let spot = path('mod_enrollments', modId + '_' + myEmail());
+      return exists(spot) && get(spot).data.student_id == uid();
+    }
+
+    // ---- Writes
+
+    function incoming() {
+      return request.resource.data;
+    }
+    function changes() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+    // Rows with a unique key use it as their document ID.
+    function keyed(id, key) {
+      return id == key && incoming().id == id;
+    }
+
+    // ---- Cascades
+    // Postgres deleted or nulled child rows when their parent was deleted. The
+    // app now does that cleanup right after the delete, so once a parent is gone
+    // anyone may read, delete, or null the reference in its leftover children.
+
+    function parentGone(field, collection) {
+      return resource.data[field] != null && !exists(path(collection, resource.data[field]));
+    }
+    function nulledOrphan(field, collection) {
+      return parentGone(field, collection)
+        && changes().hasOnly([field]) && incoming()[field] == null;
+    }
+
+    // ---- Accounts
+
+    match /profiles/{id} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && id == uid() && incoming().id == id;
+      allow delete: if isTeacher();
+    }
+
+    // Sign-in emails, which lived in auth.users: the owner and teachers only.
+    match /user_accounts/{id} {
+      allow get: if signedIn() && (resource == null || id == uid() || isTeacher());
+      allow list: if isTeacher();
+      allow create, update: if signedIn() && id == uid() && incoming().id == id
+        && incoming().email == myEmail();
+      allow delete: if isTeacher() || (signedIn() && parentGone('id', 'profiles'));
+    }
+
+    // One role per account, stored at user_roles/{userId}. Students can only make
+    // themselves students; teachers can make anyone a student (linking a roster).
+    // Teacher roles are granted with scripts/firebase/set-teacher.ts.
+    match /user_roles/{id} {
+      allow get: if signedIn() && (resource == null || resource.data.user_id == uid()
+        || resource.data.role == 'teacher' || isTeacher());
+      allow list: if signedIn() && (resource.data.user_id == uid()
+        || resource.data.role == 'teacher' || isTeacher());
+      allow create: if signedIn() && keyed(id, incoming().user_id)
+        && incoming().role == 'student' && (id == uid() || isTeacher());
+      allow delete: if signedIn() && resource.data.role == 'student'
+        && (isTeacher() || parentGone('user_id', 'profiles'));
+    }
+
+    // ---- Classes and teams
+
+    match /mods/{id} {
+      allow read: if signedIn();
+      allow update: if isTeacher();
+    }
+
+    match /mod_enrollments/{id} {
+      function readable() {
+        return isTeacher() || resource.data.student_id == uid()
+          || isModMember(resource.data.mod_id) || resource.data.email == myEmail();
+      }
+      allow get: if signedIn() && (resource == null || readable());
+      allow list: if signedIn() && readable();
+      allow create, delete: if isTeacher();
+      // Teachers manage the roster; a student claims a spot added for their own email.
+      allow update: if isTeacher() || (signedIn() && resource.data.student_id == null
+        && resource.data.email == myEmail() && incoming().student_id == uid()
+        && changes().hasOnly(['student_id', 'updated_at']));
+    }
+
+    match /teams/{id} {
+      allow read: if signedIn()
+        && (isTeacher() || isMember(id) || resource.data.created_by == uid());
+      allow create: if isTeacher() && incoming().id == id;
+      allow update: if isTeacher()
+        || (signedIn() && isMember(id) && !changes().hasAny(['id', 'join_code', 'created_by']))
+        || (signedIn() && nulledOrphan('created_by', 'profiles'));
+      allow delete: if isTeacher();
+    }
+
+    // Join code -> team, so students can find a team before they can read it.
+    match /team_codes/{code} {
+      allow get: if signedIn();
+      allow list: if isTeacher();
+      allow create, update: if isTeacher() && keyed(code, incoming().code);
+      allow delete: if isTeacher() || (signedIn() && parentGone('team_id', 'teams'));
+    }
+
+    match /team_members/{id} {
+      allow get: if signedIn() && (resource == null || isTeacher()
+        || resource.data.user_id == uid() || isMember(resource.data.team_id));
+      allow list: if signedIn() && (isTeacher() || resource.data.user_id == uid()
+        || isMember(resource.data.team_id));
+      // Teachers add anyone; students join themselves with the team's join code.
+      allow create: if signedIn()
+        && keyed(id, incoming().team_id + '_' + incoming().user_id)
+        && (isTeacher() || (incoming().user_id == uid()
+          && incoming().join_code == get(path('teams', incoming().team_id)).data.join_code));
+      allow delete: if signedIn() && (isTeacher() || resource.data.user_id == uid()
+        || parentGone('team_id', 'teams') || parentGone('user_id', 'profiles'));
+    }
+
+    // ---- Shared curriculum: everyone reads, teachers edit
+
+    match /missions/{id} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+    match /stage_guides/{id} {
+      allow read: if signedIn();
+      allow update: if isTeacher();
+    }
+    match /stage_missions/{id} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+    match /learning_targets/{id} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+    match /rubric_criteria/{id} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+    match /mission_rubric_criteria/{id} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+    match /resource_docs/{id} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+    match /pacing_weeks/{id} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+    match /class_drive_files/{id} {
+      allow read: if signedIn();
+      allow write: if isTeacher();
+    }
+    match /mission_exemplars/{id} {
+      allow read, write: if isTeacher();
+    }
+
+    // ---- Student work
+
+    match /entries/{id} {
+      allow read: if signedIn() && (isTeacher() || resource.data.user_id == uid()
+        || isMember(resource.data.team_id));
+      allow create: if signedIn() && incoming().id == id && incoming().user_id == uid()
+        && (incoming().team_id == null || isMember(incoming().team_id));
+      allow update: if signedIn() && (
+        (resource.data.user_id == uid() && incoming().user_id == uid()
+          && (incoming().team_id == null || isMember(incoming().team_id)))
+        || nulledOrphan('team_id', 'teams') || nulledOrphan('mission_id', 'stage_missions'));
+      allow delete: if signedIn()
+        && (resource.data.user_id == uid() || parentGone('user_id', 'profiles'));
+    }
+
+    match /evidence/{id} {
+      allow read: if signedIn() && (isTeacher() || resource.data.user_id == uid()
+        || isMember(resource.data.team_id));
+      allow create: if signedIn() && incoming().id == id && incoming().user_id == uid()
+        && (incoming().team_id == null || isMember(incoming().team_id));
+      allow update: if signedIn() && resource.data.user_id == uid() && incoming().user_id == uid()
+        && (incoming().team_id == null || isMember(incoming().team_id));
+      allow delete: if signedIn() && (resource.data.user_id == uid()
+        || parentGone('team_id', 'teams') || parentGone('user_id', 'profiles'));
+    }
+
+    match /requests/{id} {
+      allow read: if signedIn() && (isTeacher() || resource.data.user_id == uid()
+        || isMember(resource.data.team_id));
+      allow create: if signedIn() && incoming().id == id && incoming().user_id == uid()
+        && (incoming().team_id == null || isMember(incoming().team_id));
+      // Students edit their own while pending; teachers set the status.
+      allow update: if isTeacher()
+        || (signedIn() && resource.data.user_id == uid() && resource.data.status == 'pending'
+          && incoming().user_id == uid() && incoming().status == 'pending'
+          && (incoming().team_id == null || isMember(incoming().team_id)))
+        || (signedIn() && nulledOrphan('team_id', 'teams'));
+      allow delete: if signedIn() && (
+        (resource.data.user_id == uid() && resource.data.status == 'pending')
+        || parentGone('user_id', 'profiles'));
+    }
+
+    // ---- Team workspace: members and teachers
+
+    function teamRowReadable() {
+      return signedIn() && (isTeacher() || isMember(resource.data.team_id));
+    }
+    function teamRowWritable() {
+      return signedIn() && (isTeacher() || isMember(incoming().team_id));
+    }
+
+    match /sprints/{id} {
+      allow read: if teamRowReadable();
+      allow create: if incoming().id == id && teamRowWritable();
+      allow update: if teamRowReadable() && teamRowWritable();
+      allow delete: if teamRowReadable() || (signedIn() && parentGone('team_id', 'teams'));
+    }
+    match /tasks/{id} {
+      allow read: if teamRowReadable() || (signedIn() && parentGone('sprint_id', 'sprints'));
+      allow create: if incoming().id == id && teamRowWritable();
+      allow update: if (teamRowReadable() && teamRowWritable())
+        || (signedIn() && nulledOrphan('sprint_id', 'sprints'));
+      allow delete: if teamRowReadable() || (signedIn() && parentGone('team_id', 'teams'));
+    }
+    match /meeting_minutes/{id} {
+      allow read: if teamRowReadable();
+      allow create: if incoming().id == id && teamRowWritable();
+      allow update: if teamRowReadable() && teamRowWritable();
+      allow delete: if teamRowReadable() || (signedIn() && parentGone('team_id', 'teams'));
+    }
+    match /risks/{id} {
+      allow read: if teamRowReadable();
+      allow create: if incoming().id == id && teamRowWritable();
+      allow update: if teamRowReadable() && teamRowWritable();
+      allow delete: if teamRowReadable() || (signedIn() && parentGone('team_id', 'teams'));
+    }
+
+    // A team's own copy of the pacing guide: members edit it, teachers can look.
+    match /team_pacing_weeks/{id} {
+      allow get: if signedIn() && (resource == null || isTeacher()
+        || isMember(resource.data.team_id));
+      allow list: if teamRowReadable();
+      allow create: if signedIn()
+        && keyed(id, incoming().team_id + '_' + string(incoming().week_number))
+        && isMember(incoming().team_id);
+      allow update: if signedIn() && isMember(resource.data.team_id)
+        && isMember(incoming().team_id);
+      allow delete: if signedIn()
+        && (isMember(resource.data.team_id) || parentGone('team_id', 'teams'));
+    }
+
+    match /mission_completions/{id} {
+      allow get: if signedIn() && (resource == null || isTeacher()
+        || isMember(resource.data.team_id));
+      allow list: if teamRowReadable();
+      allow create: if signedIn()
+        && keyed(id, incoming().mission_id + '_' + incoming().team_id)
+        && isMember(incoming().team_id) && incoming().completed_by == uid();
+      allow update: if signedIn() && nulledOrphan('completed_by', 'profiles');
+      allow delete: if signedIn() && (isTeacher() || isMember(resource.data.team_id)
+        || parentGone('mission_id', 'missions') || parentGone('team_id', 'teams'));
+    }
+
+    // ---- Assessment
+
+    match /feedback/{id} {
+      allow read: if signedIn() && (isTeacher() || resource.data.author_id == uid()
+        || resource.data.target_user_id == uid() || isMember(resource.data.team_id)
+        || parentGone('entry_id', 'entries'));
+      allow create: if isTeacher() && incoming().id == id && incoming().author_id == uid();
+      allow update: if isTeacher() && resource.data.author_id == uid()
+        && incoming().author_id == uid();
+      allow delete: if (isTeacher() && resource.data.author_id == uid())
+        || (signedIn() && (parentGone('entry_id', 'entries')
+          || parentGone('mission_id', 'missions') || parentGone('team_id', 'teams')
+          || parentGone('author_id', 'profiles') || parentGone('target_user_id', 'profiles')));
+    }
+
+    match /rubric_scores/{id} {
+      allow read: if signedIn() && (isTeacher() || resource.data.student_id == uid()
+        || isMember(resource.data.team_id) || parentGone('entry_id', 'entries'));
+      allow create: if isTeacher() && incoming().id == id && incoming().teacher_id == uid();
+      allow update: if isTeacher() || (signedIn() && nulledOrphan('entry_id', 'entries'));
+      allow delete: if isTeacher();
+    }
+
+    match /mission_grades/{id} {
+      allow get: if signedIn() && (resource == null || isTeacher()
+        || isMember(resource.data.team_id));
+      allow list: if teamRowReadable();
+      allow create: if isTeacher() && keyed(id, incoming().mission_id + '_' + incoming().team_id);
+      allow update, delete: if isTeacher();
+    }
+
+    // ---- Notifications: only ever your own
+
+    match /notifications/{id} {
+      allow read: if signedIn() && (resource.data.recipient_id == uid()
+        || parentGone('entry_id', 'entries') || parentGone('team_id', 'teams')
+        || parentGone('recipient_id', 'profiles') || parentGone('actor_id', 'profiles'));
+      // A student's mission post notifies every teacher (a Postgres trigger did this before).
+      allow create: if signedIn() && incoming().id == id && incoming().actor_id == uid()
+        && roleIsTeacher(incoming().recipient_id) && incoming().read_at == null
+        && incoming().kind in ['mission_submitted', 'mission_updated', 'graded_mission_changed'];
+      allow update: if signedIn() && (
+        (resource.data.recipient_id == uid() && incoming().recipient_id == uid())
+        || nulledOrphan('actor_id', 'profiles'));
+      allow delete: if signedIn() && (resource.data.recipient_id == uid()
+        || parentGone('entry_id', 'entries') || parentGone('team_id', 'teams')
+        || parentGone('recipient_id', 'profiles'));
+    }
+  }
+}

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Award, Link2, Pencil, Plus, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import {
@@ -93,10 +93,7 @@ function RubricsPage() {
   const targets = useQuery({
     queryKey: ["learning-targets"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("learning_targets")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await db.from("learning_targets").select("*").order("sort_order");
       if (error) throw error;
       return data as LearningTarget[];
     },
@@ -105,10 +102,7 @@ function RubricsPage() {
   const criteria = useQuery({
     queryKey: ["rubric-criteria"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("rubric_criteria")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await db.from("rubric_criteria").select("*").order("sort_order");
       if (error) throw error;
       return data as RubricCriterion[];
     },
@@ -118,7 +112,7 @@ function RubricsPage() {
     queryKey: ["rubric-scores", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("rubric_scores").select("*");
+      const { data, error } = await db.from("rubric_scores").select("*");
       if (error) throw error;
       return data as RubricScore[];
     },
@@ -129,14 +123,14 @@ function RubricsPage() {
     queryKey: ["rubric-students"],
     enabled: isTeacher,
     queryFn: async () => {
-      const { data: roleRows, error: roleErr } = await supabase
+      const { data: roleRows, error: roleErr } = await db
         .from("user_roles")
         .select("user_id")
         .eq("role", "student");
       if (roleErr) throw roleErr;
       const ids = (roleRows ?? []).map((r) => r.user_id);
       if (ids.length === 0) return [] as StudentOption[];
-      const { data: profs, error: profErr } = await supabase
+      const { data: profs, error: profErr } = await db
         .from("profiles")
         .select("id, full_name")
         .in("id", ids);
@@ -151,10 +145,7 @@ function RubricsPage() {
     queryKey: ["rubric-teams"],
     enabled: isTeacher,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("teams")
-        .select("id, name")
-        .order("name");
+      const { data, error } = await db.from("teams").select("id, name").order("name");
       if (error) throw error;
       return (data ?? []) as TeamOption[];
     },
@@ -173,11 +164,7 @@ function RubricsPage() {
   const evidenceIds = useMemo(
     () =>
       Array.from(
-        new Set(
-          (scores.data ?? [])
-            .map((s) => s.entry_id)
-            .filter((id): id is string => !!id),
-        ),
+        new Set((scores.data ?? []).map((s) => s.entry_id).filter((id): id is string => !!id)),
       ),
     [scores.data],
   );
@@ -185,10 +172,7 @@ function RubricsPage() {
     queryKey: ["rubric-score-evidence", evidenceIds],
     enabled: evidenceIds.length > 0,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("entries")
-        .select("id, title")
-        .in("id", evidenceIds);
+      const { data, error } = await db.from("entries").select("id, title").in("id", evidenceIds);
       if (error) throw error;
       return (data ?? []) as EntryOption[];
     },
@@ -216,7 +200,7 @@ function RubricsPage() {
   const saveTarget = useMutation({
     mutationFn: async () => {
       if (!editingTarget) throw new Error("No target selected");
-      const { error } = await supabase
+      const { error } = await db
         .from("learning_targets")
         .update({
           title: targetTitle.trim(),
@@ -261,7 +245,7 @@ function RubricsPage() {
     mutationFn: async () => {
       if (!criterionTarget) throw new Error("No target selected");
       if (editingCriterion) {
-        const { error } = await supabase
+        const { error } = await db
           .from("rubric_criteria")
           .update({ criterion: criterionText.trim(), level: criterionLevel })
           .eq("id", editingCriterion.id);
@@ -271,7 +255,7 @@ function RubricsPage() {
           (c) => c.target_id === criterionTarget.id && c.level === criterionLevel,
         );
         const nextOrder = Math.max(0, ...siblings.map((c) => c.sort_order)) + 1;
-        const { error } = await supabase.from("rubric_criteria").insert({
+        const { error } = await db.from("rubric_criteria").insert({
           target_id: criterionTarget.id,
           level: criterionLevel,
           criterion: criterionText.trim(),
@@ -290,7 +274,7 @@ function RubricsPage() {
 
   const removeCriterion = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("rubric_criteria").delete().eq("id", id);
+      const { error } = await db.from("rubric_criteria").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -336,7 +320,7 @@ function RubricsPage() {
     queryKey: ["rubric-subject-entries", scoreStudentId],
     enabled: scoreDialog && subjectType === "student" && !!scoreStudentId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("entries")
         .select("id, title")
         .eq("user_id", scoreStudentId)
@@ -352,7 +336,7 @@ function RubricsPage() {
       if (!scoreTarget) throw new Error("No target selected");
       const entryId = scoreEntryId === "none" ? null : scoreEntryId;
       if (editingScore) {
-        const { error } = await supabase
+        const { error } = await db
           .from("rubric_scores")
           .update({ level: scoreLevel, note: scoreNote.trim(), entry_id: entryId })
           .eq("id", editingScore.id);
@@ -362,9 +346,7 @@ function RubricsPage() {
       const existing = (scores.data ?? []).find(
         (s) =>
           s.target_id === scoreTarget.id &&
-          (subjectType === "student"
-            ? s.student_id === scoreStudentId
-            : s.team_id === scoreTeamId),
+          (subjectType === "student" ? s.student_id === scoreStudentId : s.team_id === scoreTeamId),
       );
       const payload = {
         target_id: scoreTarget.id,
@@ -376,13 +358,10 @@ function RubricsPage() {
         entry_id: entryId,
       };
       if (existing) {
-        const { error } = await supabase
-          .from("rubric_scores")
-          .update(payload)
-          .eq("id", existing.id);
+        const { error } = await db.from("rubric_scores").update(payload).eq("id", existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("rubric_scores").insert(payload);
+        const { error } = await db.from("rubric_scores").insert(payload);
         if (error) throw error;
       }
     },
@@ -396,7 +375,7 @@ function RubricsPage() {
 
   const removeScore = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("rubric_scores").delete().eq("id", id);
+      const { error } = await db.from("rubric_scores").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -406,8 +385,7 @@ function RubricsPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
-  const scoreSubjectValid =
-    subjectType === "student" ? !!scoreStudentId : !!scoreTeamId;
+  const scoreSubjectValid = subjectType === "student" ? !!scoreStudentId : !!scoreTeamId;
 
   const loading = targets.isLoading || criteria.isLoading;
 
@@ -441,13 +419,10 @@ function RubricsPage() {
       {!loading &&
         (targets.data ?? []).map((t) => {
           const targetCriteria = (criteria.data ?? []).filter((c) => c.target_id === t.id);
-          const byLevel = (level: string) =>
-            targetCriteria.filter((c) => c.level === level);
+          const byLevel = (level: string) => targetCriteria.filter((c) => c.level === level);
           const targetScores = (scores.data ?? []).filter((s) => s.target_id === t.id);
           const myScore = targetScores.find((s) => s.student_id === user?.id);
-          const teamScore = targetScores.find(
-            (s) => s.team_id && s.team_id === team?.id,
-          );
+          const teamScore = targetScores.find((s) => s.team_id && s.team_id === team?.id);
           const showDeveloping = byLevel("developing").length > 0;
 
           return (
@@ -468,11 +443,7 @@ function RubricsPage() {
                         <Button variant="outline" size="sm" onClick={() => openScore(t)}>
                           <Award className="mr-1.5 h-4 w-4" /> Score
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openNewCriterion(t)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => openNewCriterion(t)}>
                           <Plus className="mr-1.5 h-4 w-4" /> Criterion
                         </Button>
                         <Button
@@ -503,9 +474,7 @@ function RubricsPage() {
                             label="Your level"
                             score={myScore}
                             evidenceTitle={
-                              myScore.entry_id
-                                ? evidenceTitleById.get(myScore.entry_id)
-                                : undefined
+                              myScore.entry_id ? evidenceTitleById.get(myScore.entry_id) : undefined
                             }
                           />
                         )}
@@ -523,8 +492,8 @@ function RubricsPage() {
                       </div>
                     ) : (
                       <p className="text-xs text-muted-foreground">
-                        Not scored yet — your teacher scores this target from your
-                        notebook evidence.
+                        Not scored yet — your teacher scores this target from your notebook
+                        evidence.
                       </p>
                     )}
                   </div>
@@ -532,66 +501,60 @@ function RubricsPage() {
 
                 {/* Criteria columns */}
                 <div
-                  className={cn(
-                    "grid gap-3 md:grid-cols-2",
-                    showDeveloping && "lg:grid-cols-3",
-                  )}
+                  className={cn("grid gap-3 md:grid-cols-2", showDeveloping && "lg:grid-cols-3")}
                 >
-                  {RUBRIC_LEVELS.filter(
-                    (l) => l.key !== "developing" || showDeveloping,
-                  ).map((l) => (
-                    <div
-                      key={l.key}
-                      className="rounded-lg border border-border bg-muted/30 p-3"
-                    >
-                      <p
-                        className={cn(
-                          "pb-2 font-mono text-[10px] font-bold uppercase tracking-wider",
-                          LEVEL_TEXT[l.key],
-                        )}
-                      >
-                        {l.label}
-                      </p>
-                      {byLevel(l.key).length === 0 ? (
-                        <p className="text-xs text-muted-foreground">No criteria listed.</p>
-                      ) : (
-                        <ul className="space-y-2">
-                          {byLevel(l.key).map((c) => (
-                            <li
-                              key={c.id}
-                              className="group flex items-start gap-2 text-sm text-muted-foreground"
-                            >
-                              <span
-                                className={cn(
-                                  "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                                  LEVEL_DOTS[c.level],
+                  {RUBRIC_LEVELS.filter((l) => l.key !== "developing" || showDeveloping).map(
+                    (l) => (
+                      <div key={l.key} className="rounded-lg border border-border bg-muted/30 p-3">
+                        <p
+                          className={cn(
+                            "pb-2 font-mono text-[10px] font-bold uppercase tracking-wider",
+                            LEVEL_TEXT[l.key],
+                          )}
+                        >
+                          {l.label}
+                        </p>
+                        {byLevel(l.key).length === 0 ? (
+                          <p className="text-xs text-muted-foreground">No criteria listed.</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {byLevel(l.key).map((c) => (
+                              <li
+                                key={c.id}
+                                className="group flex items-start gap-2 text-sm text-muted-foreground"
+                              >
+                                <span
+                                  className={cn(
+                                    "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
+                                    LEVEL_DOTS[c.level],
+                                  )}
+                                />
+                                <span className="min-w-0 flex-1">{c.criterion}</span>
+                                {isTeacher && (
+                                  <span className="flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                                    <button
+                                      onClick={() => openEditCriterion(t, c)}
+                                      aria-label="Edit criterion"
+                                      className="rounded p-1 hover:bg-muted"
+                                    >
+                                      <Pencil className="h-3.5 w-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => removeCriterion.mutate(c.id)}
+                                      aria-label="Delete criterion"
+                                      className="rounded p-1 hover:bg-muted"
+                                    >
+                                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                    </button>
+                                  </span>
                                 )}
-                              />
-                              <span className="min-w-0 flex-1">{c.criterion}</span>
-                              {isTeacher && (
-                                <span className="flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                                  <button
-                                    onClick={() => openEditCriterion(t, c)}
-                                    aria-label="Edit criterion"
-                                    className="rounded p-1 hover:bg-muted"
-                                  >
-                                    <Pencil className="h-3.5 w-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => removeCriterion.mutate(c.id)}
-                                    aria-label="Delete criterion"
-                                    className="rounded p-1 hover:bg-muted"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                                  </button>
-                                </span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  ))}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ),
+                  )}
                 </div>
 
                 {/* Teacher: recorded scores */}
@@ -638,9 +601,7 @@ function RubricsPage() {
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
                         </span>
-                        {s.note && (
-                          <p className="w-full text-xs text-muted-foreground">{s.note}</p>
-                        )}
+                        {s.note && <p className="w-full text-xs text-muted-foreground">{s.note}</p>}
                       </div>
                     ))}
                   </div>
@@ -719,8 +680,7 @@ function RubricsPage() {
               {criterionTarget ? ` — ${criterionTarget.title}` : ""}
             </DialogTitle>
             <DialogDescription>
-              Describe what a student demonstrates at this level. Students see this
-              immediately.
+              Describe what a student demonstrates at this level. Students see this immediately.
             </DialogDescription>
           </DialogHeader>
           <form
@@ -910,11 +870,7 @@ function RubricsPage() {
 
             <DialogFooter>
               <Button type="submit" disabled={saveScore.isPending || !scoreSubjectValid}>
-                {saveScore.isPending
-                  ? "Saving…"
-                  : editingScore
-                    ? "Update score"
-                    : "Record score"}
+                {saveScore.isPending ? "Saving…" : editingScore ? "Update score" : "Record score"}
               </Button>
             </DialogFooter>
           </form>

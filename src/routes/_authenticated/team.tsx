@@ -2,9 +2,17 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { Check, ClipboardList, Copy, FolderOpen, KanbanSquare, ListTodo, Users } from "lucide-react";
+import {
+  Check,
+  ClipboardList,
+  Copy,
+  FolderOpen,
+  KanbanSquare,
+  ListTodo,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { useTeamMembers } from "@/hooks/use-team-members";
 import { WORKFLOW_STAGES } from "@/lib/studio";
@@ -31,7 +39,8 @@ export const Route = createFileRoute("/_authenticated/team")({
       { title: "Team Dashboard — Engineering Studio" },
       {
         name: "description",
-        content: "Your team's command center: project focus, workflow stage, members, and activity.",
+        content:
+          "Your team's command center: project focus, workflow stage, members, and activity.",
       },
       { property: "og:title", content: "Team Dashboard — Engineering Studio" },
       { property: "og:type", content: "website" },
@@ -47,7 +56,7 @@ function JoinTeamCard() {
 
   const join = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.rpc("join_team_by_code", {
+      const { data, error } = await db.rpc("join_team_by_code", {
         _code: code.trim().toUpperCase(),
       });
       if (error) throw error;
@@ -101,19 +110,13 @@ function TeamPage() {
     enabled: !!team,
     queryFn: async () => {
       const [tasks, evidence, entries] = await Promise.all([
-        supabase
+        db
           .from("tasks")
           .select("id", { count: "exact", head: true })
           .eq("team_id", team!.id)
           .neq("status", "done"),
-        supabase
-          .from("evidence")
-          .select("id", { count: "exact", head: true })
-          .eq("team_id", team!.id),
-        supabase
-          .from("entries")
-          .select("id", { count: "exact", head: true })
-          .eq("team_id", team!.id),
+        db.from("evidence").select("id", { count: "exact", head: true }).eq("team_id", team!.id),
+        db.from("entries").select("id", { count: "exact", head: true }).eq("team_id", team!.id),
       ]);
       return {
         openTasks: tasks.count ?? 0,
@@ -127,7 +130,7 @@ function TeamPage() {
     queryKey: ["active-sprint", team?.id],
     enabled: !!team,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("sprints")
         .select("*")
         .eq("team_id", team!.id)
@@ -143,7 +146,7 @@ function TeamPage() {
     queryKey: ["minutes-recent", team?.id],
     enabled: !!team,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("meeting_minutes")
         .select("*")
         .eq("team_id", team!.id)
@@ -156,10 +159,7 @@ function TeamPage() {
 
   const setStage = useMutation({
     mutationFn: async (stage: string) => {
-      const { error } = await supabase
-        .from("teams")
-        .update({ current_stage: stage })
-        .eq("id", team!.id);
+      const { error } = await db.from("teams").update({ current_stage: stage }).eq("id", team!.id);
       if (error) throw error;
     },
     onSuccess: () => {

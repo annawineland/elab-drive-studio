@@ -15,7 +15,7 @@ import {
   Target,
   Users,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import {
@@ -34,8 +34,6 @@ import { cn } from "@/lib/utils";
 import { parseMissionDescription } from "@/lib/mission-attachment";
 import { MissionNotes } from "@/components/mission-feedback";
 import { VocabText } from "@/components/vocab-text";
-
-
 
 export const Route = createFileRoute("/_authenticated/studio")({
   head: () => ({
@@ -74,7 +72,7 @@ function StudioHome() {
   const missions = useQuery({
     queryKey: ["missions-today", today, team?.mod_id],
     queryFn: async () => {
-      let q = supabase
+      let q = db
         .from("missions")
         .select("*, mods(name)")
         .lte("mission_date", today)
@@ -91,7 +89,7 @@ function StudioHome() {
     queryKey: ["mission-completions", team?.id],
     enabled: !!team,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mission_completions")
         .select("mission_id")
         .eq("team_id", team!.id);
@@ -109,12 +107,12 @@ function StudioHome() {
   const toggleMission = useMutation({
     mutationFn: async ({ missionId, done }: { missionId: string; done: boolean }) => {
       if (done) {
-        const { error } = await supabase
+        const { error } = await db
           .from("mission_completions")
           .insert({ mission_id: missionId, team_id: team!.id, completed_by: user!.id });
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await db
           .from("mission_completions")
           .delete()
           .eq("mission_id", missionId)
@@ -130,13 +128,13 @@ function StudioHome() {
   });
 
   const entryCount = useCount(`entries-${user!.id}`, () =>
-    supabase.from("entries").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
+    db.from("entries").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
   );
   const evidenceCount = useCount(`evidence-${user!.id}`, () =>
-    supabase.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
+    db.from("evidence").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
   );
   const requestCount = useCount(`requests-${user!.id}`, () =>
-    supabase
+    db
       .from("requests")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user!.id)
@@ -144,7 +142,7 @@ function StudioHome() {
   );
   const openTasks = useCount(`tasks-${team?.id ?? "none"}`, () =>
     team
-      ? supabase
+      ? db
           .from("tasks")
           .select("id", { count: "exact", head: true })
           .eq("team_id", team.id)
@@ -157,7 +155,7 @@ function StudioHome() {
     queryFn: async () => {
       const clauses = [`target_user_id.eq.${user!.id}`];
       if (team) clauses.push(`team_id.eq.${team.id}`);
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("feedback")
         .select("*")
         .or(clauses.join(","))
@@ -173,7 +171,7 @@ function StudioHome() {
     queryKey: ["my-mod", user!.id],
     enabled: role === "student",
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mod_enrollments")
         .select("mod_id, mods(name)")
         .eq("student_id", user!.id)
@@ -188,7 +186,7 @@ function StudioHome() {
     queryKey: ["mod-classmates", myMod.data?.mod_id],
     enabled: !!myMod.data?.mod_id,
     queryFn: async () => {
-      const { data: enrolls, error } = await supabase
+      const { data: enrolls, error } = await db
         .from("mod_enrollments")
         .select("student_id")
         .eq("mod_id", myMod.data!.mod_id)
@@ -196,7 +194,7 @@ function StudioHome() {
       if (error) throw error;
       const ids = (enrolls ?? []).map((e) => e.student_id).filter((x): x is string => !!x);
       if (ids.length === 0) return [];
-      const { data: profs, error: pErr } = await supabase
+      const { data: profs, error: pErr } = await db
         .from("profiles")
         .select("id, full_name")
         .in("id", ids);
@@ -365,9 +363,7 @@ function StudioHome() {
               />
             )}
             {!missions.isLoading && openMissions.length === 0 && doneMissions.length > 0 && (
-              <p className="text-sm text-muted-foreground">
-                All missions checked off. Nice work.
-              </p>
+              <p className="text-sm text-muted-foreground">All missions checked off. Nice work.</p>
             )}
             {[...openMissions, ...doneMissions].map((m) => {
               const parsed = parseMissionDescription(m.description);
@@ -406,9 +402,7 @@ function StudioHome() {
                         >
                           <Link
                             to="/notebook"
-                            search={
-                              m.stage ? { stage: m.stage, mission: m.id } : { mission: m.id }
-                            }
+                            search={m.stage ? { stage: m.stage, mission: m.id } : { mission: m.id }}
                             className="underline-offset-4 hover:underline"
                             title="Open this mission in your design notebook"
                           >
@@ -481,7 +475,6 @@ function StudioHome() {
                         )}
                       </div>
                       <MissionNotes missionId={m.id} teamId={team?.id} />
-
                     </div>
                   </div>
                 </div>

@@ -2,18 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, subDays } from "date-fns";
-import {
-  BookOpen,
-  MessageSquarePlus,
-  Pencil,
-  Trash2,
-  UserRoundX,
-  UsersRound,
-} from "lucide-react";
+import { BookOpen, MessageSquarePlus, Pencil, Trash2, UserRoundX, UsersRound } from "lucide-react";
 import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
-import { deleteStudentAccount } from "@/lib/students.functions";
+import { db } from "@/integrations/firebase/client";
+import { deleteStudentAccount } from "@/lib/students";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,7 +45,8 @@ export const Route = createFileRoute("/_authenticated/control/students")({
       { title: "Students — Mission Control" },
       {
         name: "description",
-        content: "Class roster with notebook and evidence activity per student, plus quick feedback.",
+        content:
+          "Class roster with notebook and evidence activity per student, plus quick feedback.",
       },
       { property: "og:title", content: "Students — Mission Control" },
       { property: "og:type", content: "website" },
@@ -81,11 +74,10 @@ function StudentsPage() {
   const [feedbackBody, setFeedbackBody] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [purgeFor, setPurgeFor] = useState<Row | null>(null);
-  const deleteAccount = useServerFn(deleteStudentAccount);
 
   const purgeStudent = useMutation({
     mutationFn: async (row: Row) => {
-      await deleteAccount({ data: { studentId: row.id } });
+      await deleteStudentAccount(row.id);
     },
     onSuccess: () => {
       toast.success("Account and all of that student's work were deleted");
@@ -103,28 +95,23 @@ function StudentsPage() {
       // Every account that isn't a teacher — including students who were taken
       // off a roster or team, so they can still be managed here.
       const [allProfiles, teacherRoles] = await Promise.all([
-        supabase.from("profiles").select("id, full_name"),
-        supabase.from("user_roles").select("user_id").eq("role", "teacher"),
+        db.from("profiles").select("id, full_name"),
+        db.from("user_roles").select("user_id").eq("role", "teacher"),
       ]);
       if (allProfiles.error) throw allProfiles.error;
       if (teacherRoles.error) throw teacherRoles.error;
       const teacherIds = new Set((teacherRoles.data ?? []).map((r) => r.user_id));
-      const ids = (allProfiles.data ?? [])
-        .map((p) => p.id)
-        .filter((id) => !teacherIds.has(id));
+      const ids = (allProfiles.data ?? []).map((p) => p.id).filter((id) => !teacherIds.has(id));
       if (ids.length === 0) return [] as Row[];
 
       const since = subDays(new Date(), 7).toISOString();
       const [profs, memberships, teams, entries, evidence, enrollments] = await Promise.all([
-        supabase.from("profiles").select("id, full_name").in("id", ids),
-        supabase.from("team_members").select("user_id, team_id").in("user_id", ids),
-        supabase.from("teams").select("id, name"),
-        supabase.from("entries").select("user_id, created_at").in("user_id", ids),
-        supabase.from("evidence").select("user_id").in("user_id", ids),
-        supabase
-          .from("mod_enrollments")
-          .select("student_id, mods(name)")
-          .in("student_id", ids),
+        db.from("profiles").select("id, full_name").in("id", ids),
+        db.from("team_members").select("user_id, team_id").in("user_id", ids),
+        db.from("teams").select("id, name"),
+        db.from("entries").select("user_id, created_at").in("user_id", ids),
+        db.from("evidence").select("user_id").in("user_id", ids),
+        db.from("mod_enrollments").select("student_id, mods(name)").in("student_id", ids),
       ]);
       if (profs.error) throw profs.error;
       if (memberships.error) throw memberships.error;
@@ -137,9 +124,7 @@ function StudentsPage() {
       const teamByUser = new Map(
         (memberships.data ?? []).map((m) => [m.user_id, teamNameById.get(m.team_id) ?? "—"]),
       );
-      const teamIdByUser = new Map(
-        (memberships.data ?? []).map((m) => [m.user_id, m.team_id]),
-      );
+      const teamIdByUser = new Map((memberships.data ?? []).map((m) => [m.user_id, m.team_id]));
       const modByUser = new Map(
         (enrollments.data ?? [])
           .filter((e) => e.student_id)
@@ -171,7 +156,7 @@ function StudentsPage() {
     queryKey: ["student-feedback", feedbackFor?.id],
     enabled: !!feedbackFor,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("feedback")
         .select("id, content, created_at")
         .eq("target_user_id", feedbackFor!.id)
@@ -185,14 +170,14 @@ function StudentsPage() {
   const sendFeedback = useMutation({
     mutationFn: async () => {
       if (editingId) {
-        const { error } = await supabase
+        const { error } = await db
           .from("feedback")
           .update({ content: feedbackBody.trim() })
           .eq("id", editingId);
         if (error) throw error;
         return;
       }
-      const { error } = await supabase.from("feedback").insert({
+      const { error } = await db.from("feedback").insert({
         author_id: user!.id,
         target_user_id: feedbackFor!.id,
         content: feedbackBody.trim(),
@@ -211,7 +196,7 @@ function StudentsPage() {
 
   const removeFeedback = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("feedback").delete().eq("id", id);
+      const { error } = await db.from("feedback").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_d, id) => {

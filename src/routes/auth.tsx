@@ -2,8 +2,13 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Compass, Loader2, MailCheck } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import {
+  authErrorMessage,
+  sendPasswordReset,
+  signInWithEmail,
+  signInWithGoogle,
+  signUpWithEmail,
+} from "@/integrations/firebase/auth";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +19,10 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — Engineering Studio" },
-      { name: "description", content: "Sign in to Engineering Studio, the VW eLab STEM III engineering design platform." },
+      {
+        name: "description",
+        content: "Sign in to Engineering Studio, the VW eLab STEM III engineering design platform.",
+      },
       { property: "og:title", content: "Sign in — Engineering Studio" },
       { property: "og:type", content: "website" },
     ],
@@ -39,17 +47,13 @@ function AuthPage() {
 
   async function handleGoogle() {
     setGoogleBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error(result.error.message ?? "Google sign-in failed");
+    try {
+      if (await signInWithGoogle()) navigate({ to: "/welcome" });
+    } catch (err) {
+      toast.error(authErrorMessage(err, "Google sign-in failed"));
+    } finally {
       setGoogleBusy(false);
-      return;
     }
-    if (result.redirected) return; // browser is navigating to Google
-    setGoogleBusy(false);
-    navigate({ to: "/welcome" });
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -57,23 +61,14 @@ function AuthPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: fullName },
-            emailRedirectTo: window.location.origin,
-          },
-        });
-        if (error) throw error;
+        await signUpWithEmail(email, password, fullName);
         setCheckEmail(true);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        await signInWithEmail(email, password);
         navigate({ to: "/welcome" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(authErrorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -84,11 +79,12 @@ function AuthPage() {
       toast.error("Enter your email first, then click forgot password.");
       return;
     }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) toast.error(error.message);
-    else toast.success("Password reset email sent.");
+    try {
+      await sendPasswordReset(email);
+      toast.success("Password reset email sent.");
+    } catch (err) {
+      toast.error(authErrorMessage(err));
+    }
   }
 
   return (
@@ -116,8 +112,9 @@ function AuthPage() {
                 Check your email
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                We sent a confirmation link to <span className="font-medium text-foreground">{email}</span>.
-                Confirm it, then come back and sign in.
+                We sent a confirmation link to{" "}
+                <span className="font-medium text-foreground">{email}</span>. Confirm it, then come
+                back and sign in.
               </p>
               <Button variant="outline" className="mt-6" onClick={() => setCheckEmail(false)}>
                 Back to sign in

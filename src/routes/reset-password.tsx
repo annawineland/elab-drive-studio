@@ -2,7 +2,12 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Compass, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  authErrorMessage,
+  checkPasswordResetCode,
+  confirmEmail,
+  resetPassword,
+} from "@/integrations/firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,21 +29,28 @@ function ResetPasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
+  const [code, setCode] = useState("");
 
   useEffect(() => {
-    // Supabase puts type=recovery in the URL hash after the email link.
-    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    if (hash.get("type") === "recovery") {
-      setReady(true);
+    // Firebase's emailed links carry ?mode=…&oobCode=… when their action URL
+    // points at this page (Authentication → Templates in the Firebase console).
+    const params = new URLSearchParams(window.location.search);
+    const oobCode = params.get("oobCode");
+    if (!oobCode) return;
+    if (params.get("mode") === "verifyEmail") {
+      confirmEmail(oobCode)
+        .then(() => toast.success("Email confirmed. Sign in to continue."))
+        .catch((err) => toast.error(authErrorMessage(err)))
+        .finally(() => navigate({ to: "/auth", replace: true }));
       return;
     }
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setReady(true);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+    checkPasswordResetCode(oobCode)
+      .then(() => {
+        setCode(oobCode);
+        setReady(true);
+      })
+      .catch((err) => toast.error(authErrorMessage(err)));
+  }, [navigate]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -47,13 +59,14 @@ function ResetPasswordPage() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.updateUser({ password });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
+    try {
+      await resetPassword(code, password);
       toast.success("Password updated. Sign in with your new password.");
       navigate({ to: "/auth", replace: true });
+    } catch (err) {
+      toast.error(authErrorMessage(err));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -104,7 +117,9 @@ function ResetPasswordPage() {
             </form>
           ) : (
             <div className="text-center">
-              <h1 className="font-display text-xl font-bold text-foreground">Open your reset link</h1>
+              <h1 className="font-display text-xl font-bold text-foreground">
+                Open your reset link
+              </h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 This page only works from the password-reset link in your email. Request a new one
                 from the sign-in page.

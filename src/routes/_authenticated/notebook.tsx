@@ -1,11 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import {
-  clearDraft,
-  draftKey,
-  readDraft,
-  useDraftAutosave,
-} from "@/hooks/use-draft-autosave";
+import { clearDraft, draftKey, readDraft, useDraftAutosave } from "@/hooks/use-draft-autosave";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -20,24 +15,18 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { useTeamMembers } from "@/hooks/use-team-members";
 
-import {
-  ENTRY_TYPES,
-  WORKFLOW_STAGES,
-  entryTypeLabel,
-  stageLabel,
-} from "@/lib/studio";
+import { ENTRY_TYPES, WORKFLOW_STAGES, entryTypeLabel, stageLabel } from "@/lib/studio";
 import { cn } from "@/lib/utils";
 import { encodeMissionAttachment } from "@/lib/mission-attachment";
 import { PostedMissionBanner } from "@/components/posted-mission-banner";
 import { PageHeader, EmptyState } from "@/components/studio-ui";
 import { VocabText } from "@/components/vocab-text";
 import { MissionGradingPanel } from "@/components/mission-grading";
-
 
 import { TargetRubricSummary } from "@/components/rubric-ui";
 import type { LearningTarget, RubricCriterion, RubricScore } from "@/lib/rubrics";
@@ -64,17 +53,10 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/notebook")({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): { stage?: string; mission?: string } => ({
-    stage:
-      typeof search.stage === "string" && search.stage.length > 0
-        ? search.stage
-        : undefined,
+  validateSearch: (search: Record<string, unknown>): { stage?: string; mission?: string } => ({
+    stage: typeof search.stage === "string" && search.stage.length > 0 ? search.stage : undefined,
     mission:
-      typeof search.mission === "string" && search.mission.length > 0
-        ? search.mission
-        : undefined,
+      typeof search.mission === "string" && search.mission.length > 0 ? search.mission : undefined,
   }),
   head: () => ({
     meta: [
@@ -102,7 +84,6 @@ interface Entry {
   mission_id: string | null;
   created_at: string;
 }
-
 
 interface StageGuide {
   id: string;
@@ -133,10 +114,7 @@ function DesignNotebookPage() {
   const guides = useQuery({
     queryKey: ["stage-guides"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stage_guides")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await db.from("stage_guides").select("*").order("sort_order");
       if (error) throw error;
       return data as StageGuide[];
     },
@@ -145,10 +123,7 @@ function DesignNotebookPage() {
   const missions = useQuery({
     queryKey: ["stage-missions"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("stage_missions")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await db.from("stage_missions").select("*").order("sort_order");
       if (error) throw error;
       return data as StageMission[];
     },
@@ -157,10 +132,7 @@ function DesignNotebookPage() {
   const targets = useQuery({
     queryKey: ["learning-targets"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("learning_targets")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await db.from("learning_targets").select("*").order("sort_order");
       if (error) throw error;
       return data as LearningTarget[];
     },
@@ -169,10 +141,7 @@ function DesignNotebookPage() {
   const criteria = useQuery({
     queryKey: ["rubric-criteria"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("rubric_criteria")
-        .select("*")
-        .order("sort_order");
+      const { data, error } = await db.from("rubric_criteria").select("*").order("sort_order");
       if (error) throw error;
       return data as RubricCriterion[];
     },
@@ -182,20 +151,20 @@ function DesignNotebookPage() {
     queryKey: ["rubric-scores", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("rubric_scores").select("*");
+      const { data, error } = await db.from("rubric_scores").select("*");
       if (error) throw error;
       return data as RubricScore[];
     },
   });
 
-  // My entries plus my teammates' entries (RLS allows reading team entries).
+  // My entries plus my teammates' entries (the rules allow reading team entries).
   const entries = useQuery({
     queryKey: ["my-entries", user?.id, team?.id],
     enabled: !!user,
     queryFn: async () => {
       const clauses = [`user_id.eq.${user!.id}`];
       if (team) clauses.push(`team_id.eq.${team.id}`);
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("entries")
         .select("*")
         .or(clauses.join(","))
@@ -210,7 +179,6 @@ function DesignNotebookPage() {
     () => new Map((teamMembers ?? []).map((m) => [m.user_id, m.full_name])),
     [teamMembers],
   );
-
 
   const selectedStage = stageParam ?? team?.current_stage ?? "kickoff";
   const isUnfiled = selectedStage === UNFILED;
@@ -274,7 +242,7 @@ function DesignNotebookPage() {
     queryKey: ["notebook-posted-missions"],
     enabled: isTeacher,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("missions")
         .select("id, title, stage, mission_date, due_date")
         .order("mission_date", { ascending: false });
@@ -299,7 +267,6 @@ function DesignNotebookPage() {
   const stageEntries = entriesByStage.get(selectedStage) ?? [];
   const teamStageEntries = teamEntriesByStage.get(selectedStage) ?? [];
   const unfiledCount = entriesByStage.get(UNFILED)?.length ?? 0;
-
 
   const stageTargets = useMemo(
     () => (targets.data ?? []).filter((t) => t.stage === selectedStage),
@@ -355,7 +322,6 @@ function DesignNotebookPage() {
     setEntryDialog(true);
   };
 
-
   const saveEntry = useMutation({
     mutationFn: async () => {
       const stage = isUnfiled ? "" : selectedStage;
@@ -364,40 +330,33 @@ function DesignNotebookPage() {
         title: formTitle.trim(),
         content: formContent.trim(),
         stage: editingEntry ? editingEntry.stage : stage,
-        mission_id: editingEntry
-          ? editingEntry.mission_id
-          : (respondingMission?.id ?? null),
+        mission_id: editingEntry ? editingEntry.mission_id : (respondingMission?.id ?? null),
         user_id: user!.id,
         team_id: team?.id ?? null,
       };
       if (editingEntry) {
-        const { error } = await supabase
-          .from("entries")
-          .update(payload)
-          .eq("id", editingEntry.id);
+        const { error } = await db.from("entries").update(payload).eq("id", editingEntry.id);
         if (error) throw error;
         return { autoCompleted: false };
       }
-      const { error } = await supabase.from("entries").insert(payload);
+      const { error } = await db.from("entries").insert(payload);
       if (error) throw error;
 
       // Auto check-off: if this entry answers a posted mission and the student
       // is on a team, mark that mission complete for the team (once).
       if (postedMissionId && team && !isTeacher) {
-        const { data: existing } = await supabase
+        const { data: existing } = await db
           .from("mission_completions")
           .select("id")
           .eq("mission_id", postedMissionId)
           .eq("team_id", team.id)
           .maybeSingle();
         if (!existing) {
-          const { error: cErr } = await supabase
-            .from("mission_completions")
-            .insert({
-              mission_id: postedMissionId,
-              team_id: team.id,
-              completed_by: user!.id,
-            });
+          const { error: cErr } = await db.from("mission_completions").insert({
+            mission_id: postedMissionId,
+            team_id: team.id,
+            completed_by: user!.id,
+          });
           if (!cErr) return { autoCompleted: true };
         }
       }
@@ -422,7 +381,7 @@ function DesignNotebookPage() {
 
   const removeEntry = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("entries").delete().eq("id", id);
+      const { error } = await db.from("entries").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -448,7 +407,7 @@ function DesignNotebookPage() {
   const saveGuide = useMutation({
     mutationFn: async () => {
       if (!guide) throw new Error("No guide found for this stage");
-      const { error } = await supabase
+      const { error } = await db
         .from("stage_guides")
         .update({ title: guideTitle.trim(), instructions: guideInstructions.trim() })
         .eq("id", guide.id);
@@ -485,15 +444,14 @@ function DesignNotebookPage() {
   const saveMission = useMutation({
     mutationFn: async () => {
       if (editingMission) {
-        const { error } = await supabase
+        const { error } = await db
           .from("stage_missions")
           .update({ title: missionTitle.trim(), prompt: missionPrompt.trim() })
           .eq("id", editingMission.id);
         if (error) throw error;
       } else {
-        const nextOrder =
-          Math.max(0, ...stageMissions.map((m) => m.sort_order)) + 1;
-        const { error } = await supabase.from("stage_missions").insert({
+        const nextOrder = Math.max(0, ...stageMissions.map((m) => m.sort_order)) + 1;
+        const { error } = await db.from("stage_missions").insert({
           stage: selectedStage,
           title: missionTitle.trim(),
           prompt: missionPrompt.trim(),
@@ -512,7 +470,7 @@ function DesignNotebookPage() {
 
   const removeMission = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("stage_missions").delete().eq("id", id);
+      const { error } = await db.from("stage_missions").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -531,7 +489,7 @@ function DesignNotebookPage() {
     queryKey: ["resource-docs-picker"],
     enabled: isTeacher,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("resource_docs")
         .select("slug, title, kind")
         .order("kind")
@@ -554,11 +512,11 @@ function DesignNotebookPage() {
       const doc =
         postDocSlug === "none"
           ? null
-          : resourceDocs.data?.find((d) => d.slug === postDocSlug) ?? null;
+          : (resourceDocs.data?.find((d) => d.slug === postDocSlug) ?? null);
       const description = doc
         ? `${m.prompt}\n\n${encodeMissionAttachment(doc.slug, doc.title)}`
         : m.prompt;
-      const { error } = await supabase.from("missions").insert({
+      const { error } = await db.from("missions").insert({
         title: m.title,
         description,
         stage: selectedStage,
@@ -600,9 +558,8 @@ function DesignNotebookPage() {
             {WORKFLOW_STAGES.map((s, i) => {
               const total = missionsByStage.get(s.key)?.length ?? 0;
               const done =
-                missionsByStage
-                  .get(s.key)
-                  ?.filter((m) => (responsesByMission.get(m.id) ?? 0) > 0).length ?? 0;
+                missionsByStage.get(s.key)?.filter((m) => (responsesByMission.get(m.id) ?? 0) > 0)
+                  .length ?? 0;
               const entryCount = entriesByStage.get(s.key)?.length ?? 0;
               const active = selectedStage === s.key;
               const isCurrent = team?.current_stage === s.key;
@@ -658,9 +615,7 @@ function DesignNotebookPage() {
                   onClick={() => selectStage(UNFILED)}
                   className={cn(
                     "flex w-full items-center gap-2.5 rounded-lg border border-dashed px-3 py-2 text-left transition-colors",
-                    isUnfiled
-                      ? "border-primary bg-primary/10"
-                      : "border-border hover:bg-muted/60",
+                    isUnfiled ? "border-primary bg-primary/10" : "border-border hover:bg-muted/60",
                   )}
                 >
                   <span className="min-w-0 flex-1">
@@ -707,7 +662,12 @@ function DesignNotebookPage() {
                       {guide?.title ?? stageLabel(selectedStage)}
                     </CardTitle>
                     {isTeacher && (
-                      <Button variant="ghost" size="icon" onClick={openEditGuide} aria-label="Edit instructions">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={openEditGuide}
+                        aria-label="Edit instructions"
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
                     )}
@@ -719,7 +679,6 @@ function DesignNotebookPage() {
                       text={guide?.instructions || "No instructions for this stage yet."}
                     />
                   </p>
-
                 </CardContent>
               </Card>
 
@@ -816,7 +775,6 @@ function DesignNotebookPage() {
                             <p className="mt-1.5 text-sm text-muted-foreground">
                               <VocabText text={m.prompt} />
                             </p>
-
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
                             {isTeacher ? (
@@ -848,7 +806,11 @@ function DesignNotebookPage() {
                                 </Button>
                               </>
                             ) : (
-                              <Button size="sm" variant={responses > 0 ? "outline" : "default"} onClick={() => openRespond(m)}>
+                              <Button
+                                size="sm"
+                                variant={responses > 0 ? "outline" : "default"}
+                                onClick={() => openRespond(m)}
+                              >
                                 <NotebookPen className="mr-1.5 h-4 w-4" />
                                 {responses > 0 ? "Add another response" : "Respond with an entry"}
                               </Button>
@@ -861,7 +823,6 @@ function DesignNotebookPage() {
                           teamId={team?.id ?? null}
                           isTeacher={isTeacher}
                         />
-
                       </CardContent>
                     </Card>
                   );
@@ -892,7 +853,6 @@ function DesignNotebookPage() {
                   authorName={(id) => nameByUser.get(id) ?? "Teammate"}
                 />
               )}
-
             </>
           )}
         </section>
@@ -923,7 +883,6 @@ function DesignNotebookPage() {
               <p className="mt-1 text-sm text-muted-foreground">
                 <VocabText text={respondingMission.prompt} />
               </p>
-
             </div>
           )}
           <form
@@ -990,7 +949,6 @@ function DesignNotebookPage() {
                     : "Add to notebook"}
               </Button>
             </DialogFooter>
-
           </form>
         </DialogContent>
       </Dialog>
@@ -1096,8 +1054,8 @@ function DesignNotebookPage() {
           <DialogHeader>
             <DialogTitle>Post as today's mission</DialogTitle>
             <DialogDescription>
-              {postMission?.title} goes out to every mod as today's brief on Studio Home.
-              You can attach a guide or template for students to open.
+              {postMission?.title} goes out to every mod as today's brief on Studio Home. You can
+              attach a guide or template for students to open.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -1119,10 +1077,7 @@ function DesignNotebookPage() {
               </Select>
             </div>
             <DialogFooter>
-              <Button
-                onClick={() => postToday.mutate()}
-                disabled={postToday.isPending}
-              >
+              <Button onClick={() => postToday.mutate()} disabled={postToday.isPending}>
                 <Send className="mr-1.5 h-4 w-4" />
                 {postToday.isPending ? "Posting…" : "Post mission"}
               </Button>
@@ -1153,7 +1108,6 @@ function EntriesSection({
   readOnly?: boolean;
   authorName?: (userId: string) => string;
 }) {
-
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
@@ -1196,17 +1150,28 @@ function EntriesSection({
                   </div>
                   {!readOnly && (
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => onEdit?.(e)} aria-label="Edit entry">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onEdit?.(e)}
+                        aria-label="Edit entry"
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => onDelete?.(e.id)} aria-label="Delete entry">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => onDelete?.(e.id)}
+                        aria-label="Delete entry"
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
                   )}
-
                 </div>
-                <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{e.content}</p>
+                <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">
+                  {e.content}
+                </p>
               </CardContent>
             </Card>
           );

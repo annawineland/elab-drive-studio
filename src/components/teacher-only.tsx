@@ -3,7 +3,7 @@ import { ShieldAlert } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { EmptyState } from "@/components/studio-ui";
 
-/** Client-side gate for teacher-only pages. Data stays protected by RLS regardless. */
+/** Client-side gate for teacher-only pages. Data stays protected by firestore.rules regardless. */
 export function TeacherOnly({ children }: { children: ReactNode }) {
   const { role } = useAuth();
   if (role !== "teacher") {

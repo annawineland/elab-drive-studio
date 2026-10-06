@@ -11,7 +11,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { useTeamMembers } from "@/hooks/use-team-members";
@@ -101,7 +101,7 @@ function BoardPage() {
     queryKey: ["sprints", team?.id],
     enabled: !!team,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("sprints")
         .select("*")
         .eq("team_id", team!.id)
@@ -115,7 +115,7 @@ function BoardPage() {
     queryKey: ["tasks", team?.id, sprintFilter],
     enabled: !!team,
     queryFn: async () => {
-      let q = supabase
+      let q = db
         .from("tasks")
         .select("*")
         .eq("team_id", team!.id)
@@ -137,10 +137,10 @@ function BoardPage() {
         sprint_id: tSprint === "none" ? null : tSprint,
       };
       if (editTaskId) {
-        const { error } = await supabase.from("tasks").update(fields).eq("id", editTaskId);
+        const { error } = await db.from("tasks").update(fields).eq("id", editTaskId);
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { error } = await db
           .from("tasks")
           .insert({ ...fields, team_id: team!.id, created_by: user!.id });
         if (error) throw error;
@@ -161,7 +161,7 @@ function BoardPage() {
 
   const moveTask = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("tasks").update({ status }).eq("id", id);
+      const { error } = await db.from("tasks").update({ status }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tasks"] }),
@@ -170,7 +170,7 @@ function BoardPage() {
 
   const deleteTask = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tasks").delete().eq("id", id);
+      const { error } = await db.from("tasks").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -189,10 +189,10 @@ function BoardPage() {
         end_date: sEnd || null,
       };
       if (editSprintId) {
-        const { error } = await supabase.from("sprints").update(fields).eq("id", editSprintId);
+        const { error } = await db.from("sprints").update(fields).eq("id", editSprintId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("sprints").insert({ ...fields, team_id: team!.id });
+        const { error } = await db.from("sprints").insert({ ...fields, team_id: team!.id });
         if (error) throw error;
       }
     },
@@ -213,12 +213,12 @@ function BoardPage() {
   const deleteSprint = useMutation({
     mutationFn: async (id: string) => {
       // Tasks stay on the board; they just move back to the backlog.
-      const { error: taskErr } = await supabase
+      const { error: taskErr } = await db
         .from("tasks")
         .update({ sprint_id: null })
         .eq("sprint_id", id);
       if (taskErr) throw taskErr;
-      const { error } = await supabase.from("sprints").delete().eq("id", id);
+      const { error } = await db.from("sprints").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_d, id) => {
@@ -235,13 +235,13 @@ function BoardPage() {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       if (status === "active") {
         // Only one active sprint at a time.
-        await supabase
+        await db
           .from("sprints")
           .update({ status: "complete" })
           .eq("team_id", team!.id)
           .eq("status", "active");
       }
-      const { error } = await supabase.from("sprints").update({ status }).eq("id", id);
+      const { error } = await db.from("sprints").update({ status }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -266,7 +266,7 @@ function BoardPage() {
   }
 
   const memberName = (id: string | null) =>
-    id ? (members ?? []).find((m) => m.user_id === id)?.full_name ?? "Teammate" : null;
+    id ? ((members ?? []).find((m) => m.user_id === id)?.full_name ?? "Teammate") : null;
 
   return (
     <div className="space-y-6">
@@ -624,11 +624,7 @@ function BoardPage() {
             </div>
             <DialogFooter>
               <Button type="submit" disabled={saveSprint.isPending}>
-                {saveSprint.isPending
-                  ? "Saving…"
-                  : editSprintId
-                    ? "Save changes"
-                    : "Create sprint"}
+                {saveSprint.isPending ? "Saving…" : editSprintId ? "Save changes" : "Create sprint"}
               </Button>
             </DialogFooter>
           </form>

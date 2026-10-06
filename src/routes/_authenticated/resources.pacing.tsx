@@ -24,7 +24,7 @@ import {
   type WeekStatus,
 } from "@/lib/pacing-queries";
 import { stageLabel, WORKFLOW_STAGES } from "@/lib/studio";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { PageHeader } from "@/components/studio-ui";
@@ -151,7 +151,7 @@ function EditWeekDialog({
       if (!draft.start_date || !draft.end_date) throw new Error("Both dates are required");
       if (draft.end_date < draft.start_date)
         throw new Error("The end date must be on or after the start date");
-      const { error } = await supabase
+      const { error } = await db
         .from(table)
         .update({
           start_date: draft.start_date,
@@ -226,10 +226,7 @@ function EditWeekDialog({
             </div>
             <div className="space-y-2">
               <Label>Workflow stage (links to the notebook)</Label>
-              <Select
-                value={draft.stage}
-                onValueChange={(v) => setDraft({ ...draft, stage: v })}
-              >
+              <Select value={draft.stage} onValueChange={(v) => setDraft({ ...draft, stage: v })}>
                 <SelectTrigger>
                   <SelectValue placeholder="No stage" />
                 </SelectTrigger>
@@ -300,7 +297,7 @@ function PacingGuidePage() {
   const copyClassGuide = useMutation({
     mutationFn: async () => {
       if (!team) return;
-      const { error } = await supabase.from("team_pacing_weeks").insert(
+      const { error } = await db.from("team_pacing_weeks").insert(
         classRows.map((w) => ({
           team_id: team.id,
           week_number: w.week_number,
@@ -324,7 +321,7 @@ function PacingGuidePage() {
   const clearTeamPlan = useMutation({
     mutationFn: async () => {
       if (!team) return;
-      const { error } = await supabase.from("team_pacing_weeks").delete().eq("team_id", team.id);
+      const { error } = await db.from("team_pacing_weeks").delete().eq("team_id", team.id);
       if (error) throw error;
     },
     onSuccess: () => {

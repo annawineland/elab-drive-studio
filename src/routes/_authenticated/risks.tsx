@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { PageHeader, EmptyState, StatusBadge } from "@/components/studio-ui";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ function RisksPage() {
     queryKey: ["risks", team?.id],
     enabled: !!team,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("risks")
         .select("*")
         .eq("team_id", team!.id)
@@ -111,10 +111,10 @@ function RisksPage() {
         mitigation: rMitigation.trim(),
       };
       if (editId) {
-        const { error } = await supabase.from("risks").update(payload).eq("id", editId);
+        const { error } = await db.from("risks").update(payload).eq("id", editId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("risks").insert({ team_id: team!.id, ...payload });
+        const { error } = await db.from("risks").insert({ team_id: team!.id, ...payload });
         if (error) throw error;
       }
     },
@@ -131,7 +131,7 @@ function RisksPage() {
 
   const setStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("risks").update({ status }).eq("id", id);
+      const { error } = await db.from("risks").update({ status }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["risks"] }),
@@ -140,7 +140,7 @@ function RisksPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("risks").delete().eq("id", id);
+      const { error } = await db.from("risks").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

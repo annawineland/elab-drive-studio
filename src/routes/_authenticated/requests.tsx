@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Inbox, Package, Plus, Wrench } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { useTeamMembers } from "@/hooks/use-team-members";
@@ -64,7 +64,7 @@ function RequestsPage() {
     queryFn: async () => {
       const clauses = [`user_id.eq.${user!.id}`];
       if (team) clauses.push(`team_id.eq.${team.id}`);
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("requests")
         .select("*")
         .or(clauses.join(","))
@@ -76,7 +76,7 @@ function RequestsPage() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("requests").insert({
+      const { error } = await db.from("requests").insert({
         kind,
         item: item.trim(),
         quantity: quantity.trim(),
@@ -140,7 +140,8 @@ function RequestsPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold">
-                    {r.item} <span className="font-normal text-muted-foreground">× {r.quantity}</span>
+                    {r.item}{" "}
+                    <span className="font-normal text-muted-foreground">× {r.quantity}</span>
                   </p>
                   <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                     {r.kind} · {format(new Date(r.created_at), "MMM d, yyyy")} ·{" "}
@@ -198,7 +199,9 @@ function RequestsPage() {
                 id="req-item"
                 value={item}
                 onChange={(e) => setItem(e.target.value)}
-                placeholder={kind === "fabrication" ? "e.g. Laser-cut chassis plate" : "e.g. 1/4 in plywood"}
+                placeholder={
+                  kind === "fabrication" ? "e.g. Laser-cut chassis plate" : "e.g. 1/4 in plywood"
+                }
                 required
               />
             </div>

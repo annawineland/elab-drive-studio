@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { RESOURCE_DOCS_KEY } from "@/lib/resource-queries";
 
 export const Route = createFileRoute("/_authenticated/resources")({
@@ -17,19 +17,15 @@ function ResourcesLayout() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const channel = supabase
+    const channel = db
       .channel("resource-docs-live")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "resource_docs" },
-        () => {
-          void queryClient.invalidateQueries({ queryKey: RESOURCE_DOCS_KEY });
-        },
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "resource_docs" }, () => {
+        void queryClient.invalidateQueries({ queryKey: RESOURCE_DOCS_KEY });
+      })
       .subscribe();
 
     return () => {
-      void supabase.removeChannel(channel);
+      void db.removeChannel(channel);
     };
   }, [queryClient]);
 

@@ -1,14 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  ClipboardCheck,
-  GraduationCap,
-  Lightbulb,
-  Plus,
-  Trash2,
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ClipboardCheck, GraduationCap, Lightbulb, Plus, Trash2 } from "lucide-react";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +56,7 @@ export function useMissionCriteria() {
   return useQuery({
     queryKey: ["mission-rubric-criteria"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mission_rubric_criteria")
         .select("*")
         .order("sort_order");
@@ -79,7 +73,7 @@ export function useMissionGrades() {
     queryKey: ["mission-grades", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase.from("mission_grades").select("*");
+      const { data, error } = await db.from("mission_grades").select("*");
       if (error) throw error;
       return (data ?? []) as unknown as MissionGrade[];
     },
@@ -92,10 +86,7 @@ function useGradingTeams(enabled: boolean) {
     queryKey: ["grading-teams"],
     enabled,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("teams")
-        .select("id, name, mods(name)")
-        .order("name");
+      const { data, error } = await db.from("teams").select("id, name, mods(name)").order("name");
       if (error) throw error;
       return (data ?? []) as unknown as GradeTeam[];
     },
@@ -173,9 +164,7 @@ export function MissionGradingPanel({
             <li key={c.id} className="flex items-start justify-between gap-3 text-xs">
               <span>
                 <span className="font-medium text-foreground">{c.label}</span>
-                {c.description && (
-                  <span className="text-muted-foreground"> — {c.description}</span>
-                )}
+                {c.description && <span className="text-muted-foreground"> — {c.description}</span>}
               </span>
               <span className="shrink-0 rounded bg-background px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">
                 {myGrade ? `${myGrade.scores?.[c.id] ?? 0}/${c.points}` : pointsLabel(c.points)}
@@ -245,10 +234,7 @@ function TeacherGradeList({
   onGrade: () => void;
 }) {
   const teams = useGradingTeams(true);
-  const byId = useMemo(
-    () => new Map((teams.data ?? []).map((t) => [t.id, t])),
-    [teams.data],
-  );
+  const byId = useMemo(() => new Map((teams.data ?? []).map((t) => [t.id, t])), [teams.data]);
   const ungraded = (teams.data ?? []).filter((t) => !grades.some((g) => g.team_id === t.id));
 
   return (
@@ -332,7 +318,7 @@ function RubricEditorDialog({
       const keep = rows.filter((r) => r.label.trim().length > 0);
       const removed = criteria.filter((c) => !keep.some((r) => r.id === c.id));
       if (removed.length > 0) {
-        const { error } = await supabase
+        const { error } = await db
           .from("mission_rubric_criteria")
           .delete()
           .in(
@@ -350,8 +336,8 @@ function RubricEditorDialog({
           sort_order: i + 1,
         };
         const { error } = r.id
-          ? await supabase.from("mission_rubric_criteria").update(payload).eq("id", r.id)
-          : await supabase.from("mission_rubric_criteria").insert(payload);
+          ? await db.from("mission_rubric_criteria").update(payload).eq("id", r.id)
+          : await db.from("mission_rubric_criteria").insert(payload);
         if (error) throw error;
       }
     },
@@ -428,9 +414,7 @@ function RubricEditorDialog({
           <Button
             variant="outline"
             size="sm"
-            onClick={() =>
-              setRows((prev) => [...prev, { label: "", description: "", points: 2 }])
-            }
+            onClick={() => setRows((prev) => [...prev, { label: "", description: "", points: 2 }])}
           >
             <Plus className="mr-1.5 h-4 w-4" /> Add criterion
           </Button>
@@ -455,7 +439,7 @@ function useExemplar(missionId: string, enabled: boolean) {
     queryKey: ["mission-exemplar", missionId],
     enabled,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mission_exemplars")
         .select("id, content")
         .eq("mission_id", missionId)
@@ -488,7 +472,7 @@ function ExemplarDialog({
 
   const save = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await db
         .from("mission_exemplars")
         .upsert(
           { mission_id: missionId, content: text, updated_by: user?.id ?? null },
@@ -562,10 +546,7 @@ export function GradeTeamsDialog({
     queryKey: ["grading-teams"],
     enabled: open,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("teams")
-        .select("id, name, mods(name)")
-        .order("name");
+      const { data, error } = await db.from("teams").select("id, name, mods(name)").order("name");
       if (error) throw error;
       return (data ?? []) as unknown as GradeTeam[];
     },
@@ -575,7 +556,7 @@ export function GradeTeamsDialog({
     queryKey: ["mission-responses", missionId, teamId],
     enabled: open && !!teamId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("entries")
         .select("id, title, content, created_at, user_id")
         .eq("mission_id", missionId)
@@ -604,7 +585,7 @@ export function GradeTeamsDialog({
   const save = useMutation({
     mutationFn: async () => {
       if (!teamId) throw new Error("Pick a team first");
-      const { error } = await supabase.from("mission_grades").upsert(
+      const { error } = await db.from("mission_grades").upsert(
         {
           mission_id: missionId,
           team_id: teamId,

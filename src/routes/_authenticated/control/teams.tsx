@@ -1,9 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Copy, GraduationCap, KanbanSquare, NotebookPen, Plus, Trash2, Users, X } from "lucide-react";
+import {
+  Check,
+  Copy,
+  GraduationCap,
+  KanbanSquare,
+  NotebookPen,
+  Plus,
+  Trash2,
+  Users,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { TeacherOnly } from "@/components/teacher-only";
 import { WORKFLOW_STAGES } from "@/lib/studio";
@@ -61,7 +71,7 @@ function TeamsPage() {
   const mods = useQuery({
     queryKey: ["mods"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("mods").select("*").order("sort_order");
+      const { data, error } = await db.from("mods").select("*").order("sort_order");
       if (error) throw error;
       return data;
     },
@@ -72,7 +82,7 @@ function TeamsPage() {
     queryKey: ["mod-roster", tMod],
     enabled: dialogOpen && tMod !== "none",
     queryFn: async () => {
-      const { data: enrolls, error } = await supabase
+      const { data: enrolls, error } = await db
         .from("mod_enrollments")
         .select("id, email, student_id")
         .eq("mod_id", tMod)
@@ -81,7 +91,7 @@ function TeamsPage() {
       const ids = (enrolls ?? []).map((e) => e.student_id).filter((x): x is string => !!x);
       const names = new Map<string, string>();
       if (ids.length > 0) {
-        const { data: profs, error: pErr } = await supabase
+        const { data: profs, error: pErr } = await db
           .from("profiles")
           .select("id, full_name")
           .in("id", ids);
@@ -98,19 +108,19 @@ function TeamsPage() {
   const teams = useQuery({
     queryKey: ["control-teams-full"],
     queryFn: async () => {
-      const { data: teamRows, error } = await supabase
+      const { data: teamRows, error } = await db
         .from("teams")
         .select("*, mods(name)")
         .order("created_at", { ascending: true });
       if (error) throw error;
-      const { data: mems, error: mErr } = await supabase
+      const { data: mems, error: mErr } = await db
         .from("team_members")
         .select("id, team_id, user_id");
       if (mErr) throw mErr;
       const memberIds = (mems ?? []).map((m) => m.user_id);
       const names = new Map<string, string>();
       if (memberIds.length > 0) {
-        const { data: profs, error: pErr } = await supabase
+        const { data: profs, error: pErr } = await db
           .from("profiles")
           .select("id, full_name")
           .in("id", memberIds);
@@ -135,7 +145,7 @@ function TeamsPage() {
   const teamScores = useQuery({
     queryKey: ["control-team-scores"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mission_grades")
         .select("team_id, total_points, possible_points");
       if (error) throw error;
@@ -153,7 +163,7 @@ function TeamsPage() {
 
   const removeMember = useMutation({
     mutationFn: async ({ id }: { id: string; name: string }) => {
-      const { error } = await supabase.from("team_members").delete().eq("id", id);
+      const { error } = await db.from("team_members").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {
@@ -164,10 +174,9 @@ function TeamsPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
-
   const createTeam = useMutation({
     mutationFn: async () => {
-      const { data: team, error } = await supabase
+      const { data: team, error } = await db
         .from("teams")
         .insert({
           name: tName.trim(),
@@ -180,9 +189,9 @@ function TeamsPage() {
         .single();
       if (error) throw error;
       if (selectedMembers.length > 0) {
-        const { error: mErr } = await supabase.from("team_members").insert(
-          selectedMembers.map((uid) => ({ team_id: team.id, user_id: uid })),
-        );
+        const { error: mErr } = await db
+          .from("team_members")
+          .insert(selectedMembers.map((uid) => ({ team_id: team.id, user_id: uid })));
         if (mErr) throw mErr;
       }
       return selectedMembers.length;
@@ -207,7 +216,7 @@ function TeamsPage() {
 
   const setStage = useMutation({
     mutationFn: async ({ id, stage }: { id: string; stage: string }) => {
-      const { error } = await supabase.from("teams").update({ current_stage: stage }).eq("id", id);
+      const { error } = await db.from("teams").update({ current_stage: stage }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -219,7 +228,7 @@ function TeamsPage() {
 
   const deleteTeam = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("teams").delete().eq("id", id);
+      const { error } = await db.from("teams").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -261,13 +270,13 @@ function TeamsPage() {
 
         {(() => {
           const all = teams.data ?? [];
-          const groups: { key: string; label: string; teams: typeof all }[] = (
-            mods.data ?? []
-          ).map((m) => ({
-            key: m.id,
-            label: m.name,
-            teams: all.filter((t) => t.mod_id === m.id),
-          }));
+          const groups: { key: string; label: string; teams: typeof all }[] = (mods.data ?? []).map(
+            (m) => ({
+              key: m.id,
+              label: m.name,
+              teams: all.filter((t) => t.mod_id === m.id),
+            }),
+          );
           const unassigned = all.filter((t) => !t.mod_id);
           if (unassigned.length > 0) {
             groups.push({ key: "none", label: "No mod assigned", teams: unassigned });
@@ -288,113 +297,113 @@ function TeamsPage() {
                 {g.teams.map((t) => {
                   const score = teamScores.data?.get(t.id);
                   return (
-                  <Card key={t.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h3 className="text-base font-semibold">{t.name}</h3>
-                          <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                            {t.memberCount} member{t.memberCount === 1 ? "" : "s"}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          {score ? (
-                            <span
-                              className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 font-mono text-xs text-primary"
-                              title={`${score.count} mission${score.count === 1 ? "" : "s"} graded`}
+                    <Card key={t.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h3 className="text-base font-semibold">{t.name}</h3>
+                            <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                              {t.memberCount} member{t.memberCount === 1 ? "" : "s"}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {score ? (
+                              <span
+                                className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 font-mono text-xs text-primary"
+                                title={`${score.count} mission${score.count === 1 ? "" : "s"} graded`}
+                              >
+                                <GraduationCap className="h-3.5 w-3.5" />
+                                {score.earned}/{score.possible} pts
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                                No grades yet
+                              </span>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteTeam.mutate(t.id)}
+                              aria-label={`Delete ${t.name}`}
                             >
-                              <GraduationCap className="h-3.5 w-3.5" />
-                              {score.earned}/{score.possible} pts
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 rounded-md border border-dashed px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                              No grades yet
-                            </span>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteTeam.mutate(t.id)}
-                            aria-label={`Delete ${t.name}`}
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+                        {(t.client_name || t.project_focus) && (
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            {[t.client_name && `Client: ${t.client_name}`, t.project_focus]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        )}
+                        <PacingTracker stage={t.current_stage} teamId={t.id} className="mt-3" />
+                        {t.members.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-1.5">
+                            {t.members.map((m) => (
+                              <span
+                                key={m.id}
+                                className="inline-flex items-center gap-1 rounded-full border bg-muted/40 py-0.5 pl-2.5 pr-1 text-xs"
+                              >
+                                {m.name}
+                                <button
+                                  type="button"
+                                  className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                                  aria-label={`Remove ${m.name} from ${t.name}`}
+                                  onClick={() => removeMember.mutate({ id: m.id, name: m.name })}
+                                >
+                                  <X className="h-3 w-3" />
+                                </button>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            className="flex items-center gap-1.5 rounded-md border border-dashed px-2 py-1 font-mono text-xs tracking-widest text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                            onClick={() => {
+                              void navigator.clipboard.writeText(t.join_code);
+                              setCopiedId(t.id);
+                              setTimeout(() => setCopiedId(null), 1500);
+                            }}
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            {copiedId === t.id ? (
+                              <Check className="h-3 w-3" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                            {t.join_code}
+                          </button>
+                          <Select
+                            value={t.current_stage}
+                            onValueChange={(v) => setStage.mutate({ id: t.id, stage: v })}
+                          >
+                            <SelectTrigger className="h-8 w-44">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {WORKFLOW_STAGES.map((s) => (
+                                <SelectItem key={s.key} value={s.key}>
+                                  {s.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button variant="outline" size="sm" asChild>
+                            <Link to="/review/$teamId" params={{ teamId: t.id }}>
+                              <NotebookPen className="mr-1.5 h-4 w-4" /> Notebook
+                            </Link>
+                          </Button>
+                          <Button variant="outline" size="sm" asChild>
+                            <Link to="/control/team/$teamId" params={{ teamId: t.id }}>
+                              <KanbanSquare className="mr-1.5 h-4 w-4" /> Board & minutes
+                            </Link>
                           </Button>
                         </div>
-                      </div>
-                      {(t.client_name || t.project_focus) && (
-                        <p className="mt-2 text-sm text-muted-foreground">
-                          {[t.client_name && `Client: ${t.client_name}`, t.project_focus]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </p>
-                      )}
-                      <PacingTracker stage={t.current_stage} teamId={t.id} className="mt-3" />
-                      {t.members.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-1.5">
-                          {t.members.map((m) => (
-                            <span
-                              key={m.id}
-                              className="inline-flex items-center gap-1 rounded-full border bg-muted/40 py-0.5 pl-2.5 pr-1 text-xs"
-                            >
-                              {m.name}
-                              <button
-                                type="button"
-                                className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                                aria-label={`Remove ${m.name} from ${t.name}`}
-                                onClick={() => removeMember.mutate({ id: m.id, name: m.name })}
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          className="flex items-center gap-1.5 rounded-md border border-dashed px-2 py-1 font-mono text-xs tracking-widest text-muted-foreground transition-colors hover:border-primary hover:text-primary"
-                          onClick={() => {
-                            void navigator.clipboard.writeText(t.join_code);
-                            setCopiedId(t.id);
-                            setTimeout(() => setCopiedId(null), 1500);
-                          }}
-                        >
-                          {copiedId === t.id ? (
-                            <Check className="h-3 w-3" />
-                          ) : (
-                            <Copy className="h-3 w-3" />
-                          )}
-                          {t.join_code}
-                        </button>
-                        <Select
-                          value={t.current_stage}
-                          onValueChange={(v) => setStage.mutate({ id: t.id, stage: v })}
-                        >
-                          <SelectTrigger className="h-8 w-44">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {WORKFLOW_STAGES.map((s) => (
-                              <SelectItem key={s.key} value={s.key}>
-                                {s.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to="/review/$teamId" params={{ teamId: t.id }}>
-                            <NotebookPen className="mr-1.5 h-4 w-4" /> Notebook
-                          </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                          <Link to="/control/team/$teamId" params={{ teamId: t.id }}>
-                            <KanbanSquare className="mr-1.5 h-4 w-4" /> Board & minutes
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
                   );
                 })}
               </div>
@@ -472,8 +481,8 @@ function TeamsPage() {
               {tMod !== "none" && (
                 <div className="space-y-1.5">
                   <Label>
-                    Members from{" "}
-                    {(mods.data ?? []).find((m) => m.id === tMod)?.name ?? "this mod"}'s roster
+                    Members from {(mods.data ?? []).find((m) => m.id === tMod)?.name ?? "this mod"}
+                    's roster
                   </Label>
                   <div className="max-h-44 space-y-0.5 overflow-y-auto rounded-lg border p-1.5">
                     {dialogRoster.isLoading && (

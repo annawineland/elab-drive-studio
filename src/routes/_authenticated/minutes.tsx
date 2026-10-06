@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ClipboardList, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { useTeamMembers } from "@/hooks/use-team-members";
@@ -55,7 +55,7 @@ function MinutesPage() {
     queryKey: ["minutes", team?.id],
     enabled: !!team,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("meeting_minutes")
         .select("*")
         .eq("team_id", team!.id)
@@ -67,7 +67,7 @@ function MinutesPage() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("meeting_minutes").insert({
+      const { error } = await db.from("meeting_minutes").insert({
         team_id: team!.id,
         meeting_date: mDate,
         attendees: mAttendees.trim(),
@@ -90,7 +90,7 @@ function MinutesPage() {
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("meeting_minutes").delete().eq("id", id);
+      const { error } = await db.from("meeting_minutes").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

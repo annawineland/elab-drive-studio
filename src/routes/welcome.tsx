@@ -2,14 +2,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { GraduationCap, Loader2, Compass, Wrench } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/welcome")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Welcome — Engineering Studio" },
@@ -41,9 +40,7 @@ function WelcomePage() {
     if (!user) return;
     setBusy(true);
     try {
-      const { error } = await supabase
-        .from("user_roles")
-        .insert({ user_id: user.id, role: nextRole });
+      const { error } = await db.from("user_roles").insert({ user_id: user.id, role: nextRole });
       if (error) throw error;
       await refresh();
       setPicked(nextRole);
@@ -62,7 +59,7 @@ function WelcomePage() {
     if (!joinCode.trim()) return;
     setBusy(true);
     try {
-      const { error } = await supabase.rpc("join_team_by_code", { _code: joinCode.trim() });
+      const { error } = await db.rpc("join_team_by_code", { _code: joinCode.trim() });
       if (error) throw error;
       toast.success("You're on the team!");
       navigate({ to: "/studio", replace: true });

@@ -1,0 +1,985 @@
+{
+  "learning_targets": [
+    {
+      "id": "ea827267-767f-41f8-9b27-71ada6f6b775",
+      "key": "time-management",
+      "title": "Time Management",
+      "description": "Plans, prioritizes, and uses class time and sprint cycles effectively to keep the team's project on schedule.",
+      "stage": null,
+      "sort_order": 1,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "18d6b4cc-725f-4d49-acf4-eb44fd5fa825",
+      "key": "desirability",
+      "title": "Desirability",
+      "description": "Demonstrates that the proposed solution is desirable — grounded in real user and stakeholder needs and validated with evidence.",
+      "stage": "understand",
+      "sort_order": 2,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "aa611f49-8ff3-4a42-a2b6-a778c8b20c80",
+      "key": "prototyping",
+      "title": "Prototyping",
+      "description": "Builds purposeful prototypes — from rough models to functional builds — to answer design questions and improve the solution.",
+      "stage": "prototype",
+      "sort_order": 3,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    }
+  ],
+  "mods": [
+    {
+      "id": "d2707c0c-e019-433a-aa29-942d0cf06f36",
+      "name": "Mod 1",
+      "sort_order": 1
+    },
+    {
+      "id": "ab06ddec-0abf-47f1-b3b1-84bd5015e294",
+      "name": "Mod 2",
+      "sort_order": 2
+    },
+    {
+      "id": "ebb8c16d-ff41-4a4c-8cd3-3dd52f9996d2",
+      "name": "Mod 3",
+      "sort_order": 3
+    },
+    {
+      "id": "fe0542cb-3d71-4396-afa4-cdb01a4089b6",
+      "name": "Mod 4",
+      "sort_order": 4
+    },
+    {
+      "id": "03cf0e3d-09aa-443d-bf31-2f7d0630ca2f",
+      "name": "Mod 5",
+      "sort_order": 5
+    },
+    {
+      "id": "ca92e291-600f-4ef1-bded-f3575d6ce951",
+      "name": "Mod 6",
+      "sort_order": 6
+    },
+    {
+      "id": "f8d948ab-ce03-4001-81b4-2ad26cae96a0",
+      "name": "Mod 7",
+      "sort_order": 7
+    }
+  ],
+  "pacing_weeks": [
+    {
+      "id": "38c67a41-8326-4bbe-a50d-fe52056a5e1f",
+      "week_number": 1,
+      "start_date": "2026-08-10T00:00:00.000Z",
+      "end_date": "2026-08-14T00:00:00.000Z",
+      "focus": "Client Kickoff — meet your client, form your team, and set working norms.",
+      "stage": "kickoff",
+      "milestones": "Team formed with roles agreed\nClient meeting held and notes captured\nProject brief restated in the team's own words",
+      "deliverables": "Client notes entry in the Design Notebook\nTeam agreement (norms, roles, meeting times)",
+      "created_at": "2026-10-06T14:48:12.226Z",
+      "updated_at": "2026-10-06T14:48:12.226Z"
+    },
+    {
+      "id": "221e2c5b-d741-4d61-b179-ebf4faaefd21",
+      "week_number": 2,
+      "start_date": "2026-08-17T00:00:00.000Z",
+      "end_date": "2026-08-21T00:00:00.000Z",
+      "focus": "Understand the Problem — interview stakeholders and define the real need.",
+      "stage": "understand",
+      "milestones": "Stakeholder interviews completed\nProblem statement drafted and agreed by the team\nDesirability rubric reviewed before interviews",
+      "deliverables": "Interview notes in the notebook\nProblem statement entry",
+      "created_at": "2026-10-06T14:48:12.226Z",
+      "updated_at": "2026-10-06T14:48:12.226Z"
+    },
+    {
+      "id": "6f40eec6-8211-4b2d-bde7-983f1be014ea",
+      "week_number": 3,
+      "start_date": "2026-08-24T00:00:00.000Z",
+      "end_date": "2026-08-28T00:00:00.000Z",
+      "focus": "Research — benchmark existing solutions and set design requirements.",
+      "stage": "research",
+      "milestones": "Existing solutions compared (at least 3)\nRequirements list written and ranked by the team",
+      "deliverables": "Research summary entry\nRanked requirements list",
+      "created_at": "2026-10-06T14:48:12.226Z",
+      "updated_at": "2026-10-06T14:48:12.226Z"
+    },
+    {
+      "id": "d5cfafa2-52a6-4f24-a81c-3b227df10b1b",
+      "week_number": 4,
+      "start_date": "2026-08-31T00:00:00.000Z",
+      "end_date": "2026-09-04T00:00:00.000Z",
+      "focus": "Brainstorm — generate a wide range of possible concepts.",
+      "stage": "brainstorm",
+      "milestones": "Individual sketch round completed\nTeam idea board built\n3–6 candidate concepts selected for scoring",
+      "deliverables": "Concept sketches in the notebook or Evidence Vault",
+      "created_at": "2026-10-06T14:48:12.226Z",
+      "updated_at": "2026-10-06T14:48:12.226Z"
+    },
+    {
+      "id": "66a38d15-3251-4b77-b5ba-0e1c6e2d7f98",
+      "week_number": 5,
+      "start_date": "2026-09-07T00:00:00.000Z",
+      "end_date": "2026-09-11T00:00:00.000Z",
+      "focus": "Select a Concept — decision matrix and client check-in. Short week: Labor Day Monday.",
+      "stage": "select",
+      "milestones": "Decision matrix completed as a team\nWinning concept confirmed with the client",
+      "deliverables": "Completed decision matrix\nChosen-concept entry with rationale",
+      "created_at": "2026-10-06T14:48:12.226Z",
+      "updated_at": "2026-10-06T14:48:12.226Z"
+    },
+    {
+      "id": "0683eca1-445a-4edc-ae9f-abd9e3d9911c",
+      "week_number": 6,
+      "start_date": "2026-09-14T00:00:00.000Z",
+      "end_date": "2026-09-18T00:00:00.000Z",
+      "focus": "CAD & Prototype — model the concept, then build the first version.",
+      "stage": "prototype",
+      "milestones": "CAD model of the chosen concept completed\nFabrication and supply requests submitted early\nFirst prototype build underway",
+      "deliverables": "CAD log entries\nPrototype photos in the Evidence Vault",
+      "created_at": "2026-10-06T14:48:12.226Z",
+      "updated_at": "2026-10-06T14:48:12.226Z"
+    },
+    {
+      "id": "db2c9261-20cc-438d-acb7-9dff09ac0ca0",
+      "week_number": 7,
+      "start_date": "2026-09-21T00:00:00.000Z",
+      "end_date": "2026-09-25T00:00:00.000Z",
+      "focus": "Test & Iterate — run your testing plan and fix what fails.",
+      "stage": "test",
+      "milestones": "Testing plan executed and data recorded\nAt least one design iteration made from test results",
+      "deliverables": "Completed testing sheet\nIteration notes with before/after evidence",
+      "created_at": "2026-10-06T14:48:12.226Z",
+      "updated_at": "2026-10-06T14:48:12.226Z"
+    },
+    {
+      "id": "31a799a3-7478-4c94-84f3-da2352ada99b",
+      "week_number": 8,
+      "start_date": "2026-09-28T00:00:00.000Z",
+      "end_date": "2026-10-02T00:00:00.000Z",
+      "focus": "Final Presentations & Reflection — present to your client and close out the project.",
+      "stage": "present",
+      "milestones": "Final presentation delivered to client and class\nIndividual reflection written",
+      "deliverables": "Presentation delivered (planner in the library)\nReflection entries in the notebook",
+      "created_at": "2026-10-06T14:48:12.226Z",
+      "updated_at": "2026-10-06T14:48:12.226Z"
+    }
+  ],
+  "resource_docs": [
+    {
+      "id": "e1f279d4-b830-4261-b3b6-7497c72227e4",
+      "slug": "engineering-notebook-guide",
+      "kind": "guide",
+      "title": "Engineering Notebook Guide",
+      "summary": "How to keep a professional engineering notebook — what to record, how to format entries, and how your notebook is graded.",
+      "stage": null,
+      "sort_order": 10,
+      "body": "Your engineering notebook is the official record of your design work. Engineers in industry keep notebooks to document decisions, protect ideas, and communicate with their teams — yours does the same job, and it is the primary evidence your teacher uses to grade your process.\n\n# Why the notebook matters\n\n- It proves your thinking happened — not just your final product.\n- It is your evidence for the rubrics: time management, desirability, and prototyping scores all point back to notebook entries.\n- It lets teammates (and your teacher) understand decisions you made when they weren't in the room.\n- It protects your ideas by dating them.\n\n# What every entry needs\n\n1. Date and title — what is this entry about?\n2. Stage — which part of the design process are you in?\n3. What you did — actions, decisions, and why you made them.\n4. Evidence — sketches, photos, data tables, screenshots of CAD, or quotes from stakeholders.\n5. What's next — open questions and your next step.\n\n# Good notebook habits\n\n- Write in real time, during work — not from memory days later.\n- Never delete or cover up mistakes. Cross out, note what changed, and move on. Wrong turns are evidence of iteration.\n- Sketch by hand and attach photos — a labeled sketch beats a paragraph.\n- Record failures with the same care as successes.\n- Credit teammates and cite outside sources.\n\n! A rough entry written today beats a perfect entry written from memory next week.\n\n# How your notebook is graded\n\nYour teacher scores learning targets using your entries as evidence. When you respond to a stage mission, that entry is automatically linked to the mission — so working through missions in order builds your assessment record as you go. Check the Rubrics page to see exactly what Advanced and Proficient work looks like before you write.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "6eeabaed-bfcd-4998-a0c7-f6050eed2af5",
+      "slug": "stakeholder-interview-guide",
+      "kind": "guide",
+      "title": "Stakeholder Interview Guide",
+      "summary": "How to plan, run, and document interviews with your client and other stakeholders so you capture real needs — in their words.",
+      "stage": "understand",
+      "sort_order": 20,
+      "body": "You cannot design a desirable solution for someone you don't understand. Stakeholder interviews are how engineering teams uncover the needs, frustrations, and constraints that never appear in a project brief.\n\n# Before the interview\n\n1. Do your homework — learn the stakeholder's context so you don't waste their time on basics.\n2. Write 6–10 open-ended questions. Avoid anything answerable with yes/no.\n3. Assign team roles: lead interviewer, note-taker, and observer.\n4. Bring the Client Notes template (or open it in the app) to capture everything.\n\n# During the interview\n\n- Ask open questions: 'Tell me about the last time…' not 'Do you like…?'\n- Follow up with 'why' — the real need is usually two or three whys deep.\n- Let silence work. Stakeholders fill pauses with their best insights.\n- Write down exact quotes, word for word, with the speaker's name.\n- Watch what they do, not just what they say — note workarounds and frustrations.\n\n# Questions that work\n\n- Walk me through how you handle this today.\n- What's the most frustrating part of that process?\n- What have you tried before? Why didn't it stick?\n- If you could wave a magic wand, what would change?\n- Who else is affected by this problem?\n\n# After the interview\n\n1. Debrief as a team for 10 minutes while it's fresh — what surprised you?\n2. Highlight every stated or implied need in your notes.\n3. File the notes as a notebook entry in the Understand Problem stage.\n4. Send a thank-you and confirm your understanding with the stakeholder.\n\n! Record exact quotes — a stakeholder's own words are your strongest evidence for the Desirability rubric.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "0edc21b6-e69c-43e9-b711-3852a41ce1cb",
+      "slug": "research-guide",
+      "kind": "guide",
+      "title": "Research Guide",
+      "summary": "How to research a design problem like an engineer: asking the right questions, finding credible sources, and turning findings into design requirements.",
+      "stage": "research",
+      "sort_order": 30,
+      "body": "Research keeps you from reinventing the wheel — and from designing something that already failed. The goal is not a report; it is a set of design requirements your team can build from.\n\n# Start with research questions\n\n- What solutions already exist, and why are they not good enough?\n- What science, materials, or mechanisms does this problem involve?\n- What constraints are non-negotiable — cost, size, safety, regulations?\n- Who has solved a similar problem in a different field?\n\n# Where to look\n\n- Existing products and reviews — user complaints are free research.\n- Patent databases (Google Patents) — see how others solved the mechanism.\n- Standards and safety codes relevant to your project.\n- Forums and communities where your users actually talk.\n- Your school's subject teachers — physics, chemistry, and math teachers are consultants.\n\n# Evaluate every source\n\n[ ] Current — is the information still accurate?\n[ ] Credible — who published it and what is their expertise?\n[ ] Biased — is someone trying to sell you something?\n[ ] Corroborated — does at least one other source agree?\n\n# Turn research into requirements\n\n1. Summarize each finding in one sentence: what did you learn and where from?\n2. Convert findings into measurable requirements ('must lift 2 kg', not 'must be strong').\n3. Rank requirements: must-have vs. nice-to-have.\n4. Log everything in a Research-stage notebook entry with sources cited.\n\n! Every requirement should be measurable. If you can't test it, rewrite it until you can.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "40091659-c3db-493c-8d07-79674c831f01",
+      "slug": "brainstorming-guide",
+      "kind": "guide",
+      "title": "Brainstorming Guide",
+      "summary": "Rules and methods for generating a large quantity of genuinely different ideas — solo and as a team — before narrowing down.",
+      "stage": "brainstorm",
+      "sort_order": 40,
+      "body": "The first idea is rarely the best idea. Brainstorming is a discipline: separate idea generation from idea judgment, and push past the obvious solutions to find the interesting ones.\n\n# The four rules\n\n- Defer judgment — no criticizing, ranking, or 'that won't work' during generation.\n- Encourage wild ideas — an impractical idea often sparks a practical breakthrough.\n- Build on others' ideas — 'yes, and…' instead of 'no, but…'.\n- Go for quantity — aim for 20+ ideas before you evaluate anything.\n\n# Solo method: brainwriting\n\n1. Set a timer for 10 minutes.\n2. Sketch or write one idea per sticky note or notebook block — no filtering.\n3. When stuck, combine two existing ideas into a new one.\n4. Bring your notes to the team session; ideas multiply when shared.\n\n# Team methods\n\n- Round-robin: each person adds one idea in turn, no skipping, until everyone passes twice.\n- SCAMPER: Substitute, Combine, Adapt, Modify, Put to other use, Eliminate, Reverse — run your best idea through each lens.\n- Worst-possible-idea: deliberately design terrible solutions, then invert them.\n- How Might We: reframe the problem statement into 'How might we…?' questions and brainstorm each one.\n\n# From 30 ideas to 5\n\n1. Cluster similar ideas into themes.\n2. Dot-vote: each member gets 3 votes for the most promising concepts.\n3. Keep 4–6 finalists that are genuinely different from each other.\n4. Log the full brainstorm and the shortlist in a Brainstorm-stage notebook entry.\n\n! If every idea on your shortlist looks the same, you stopped too early — go back and force five ideas that break your assumptions.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "3872bfc5-faf2-4788-a506-cc848153d113",
+      "slug": "meeting-minutes",
+      "kind": "template",
+      "title": "Meeting Minutes",
+      "summary": "Capture what was discussed, what was decided, and who owes what — so no decision evaporates.",
+      "stage": null,
+      "sort_order": 150,
+      "body": "Minutes are the memory of your team. Record decisions and action items during the meeting, not after — and file them in the app under Meeting Minutes the same day.\n\n# Template\n\n@ Date & attendees | Who was present, and who was absent.\n\n@ Agenda | The 2–4 things this meeting must accomplish.\n\n@ Discussion notes | Key points only — bullet fragments, not transcripts.\n\n@ Decisions made | Each decision stated as a sentence: 'We will…'. This section is mandatory.\n\n@ Action items | Who does what by when. Every item has exactly one owner.\n\n! Read the action items aloud at the end of the meeting — if someone is surprised, the minute is wrong.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "f8cd3b82-ca26-4bdb-a1e8-15baef56e455",
+      "slug": "decision-matrix-guide",
+      "kind": "guide",
+      "title": "Decision Matrix Guide",
+      "summary": "How to choose between concepts objectively using weighted criteria — and how to document the decision so it stands up to scrutiny.",
+      "stage": "select",
+      "sort_order": 50,
+      "body": "Choosing a concept by gut feel invites bias and team conflict. A decision matrix makes your criteria explicit, weights what matters most to the client, and produces a defensible, documented decision.\n\n# Build the matrix\n\n1. List your finalist concepts across the top (3–6 options).\n2. Choose 4–6 criteria down the side, drawn from your design requirements (e.g., cost, safety, ease of build, user appeal).\n3. Weight each criterion 1–5 based on how much the client cares about it.\n4. Score every concept 1–5 against every criterion.\n5. Multiply score × weight and total each column. Highest total wins.\n\n# Rules for honest scoring\n\n- Score as a team, out loud — disagreements reveal misunderstood criteria.\n- Score one criterion at a time across all concepts, not one concept at a time.\n- Anchor your scale: define what a 1 and a 5 look like for each criterion before scoring.\n- Never adjust weights after seeing totals — that is reverse-engineering the answer you wanted.\n\n# Sanity check the winner\n\nAsk: if the weight of our top criterion changed by one point, would the winner change? If yes, the decision is close — say so, and explain what tipped it. Then write a short rationale in your notebook: which concept won, why, and what you'll watch for as you prototype it. Use the Decision Matrix template to capture the full table.\n\n! The matrix informs the decision — it doesn't make it. If the winner feels wrong, examine your criteria and weights, and write down why you overrode or accepted the result.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "015dae1d-5322-4e91-a6bb-786f7e9490df",
+      "slug": "cad-guide",
+      "kind": "guide",
+      "title": "CAD Guide",
+      "summary": "Professional CAD habits: setup, design intent, version control, and preparing clean files for fabrication.",
+      "stage": "prototype",
+      "sort_order": 60,
+      "body": "CAD is where your concept becomes a buildable object. Good CAD habits save hours at the printer and the laser cutter — and make your work understandable to teammates and fabricators.\n\n# Set up before you model\n\n- Confirm units (mm unless told otherwise) before the first sketch.\n- Name every part and file descriptively: 'bracket-left-v3', never 'final-final-2'.\n- One shared team folder — everyone models from the same files.\n- Anchor your first sketch to the origin so assemblies behave predictably.\n\n# Model with design intent\n\n- Fully define sketches — dimensions and constraints, not eyeballed shapes.\n- Drive dimensions from your requirements: if the part must clear a 40 mm bolt, dimension the 40 mm.\n- Use parameters for anything likely to change (thickness, hole size) so edits don't rebuild the model.\n- Model mating parts in one assembly to check fit before fabrication.\n\n# Version and log\n\n1. Save a new numbered version before every major change.\n2. After each CAD session, write a CAD Log entry: what you modeled, what changed, and why.\n3. Attach screenshots of key versions to your log — they're evidence for the Prototyping rubric.\n\n# Preparing files for fabrication\n\n- 3D printing: export STL at high resolution; check wall thickness and orientation for strength.\n- Laser cutting: export DXF/SVG at true scale; account for kerf in slots and tabs.\n- Always state critical dimensions and tolerances in your fabrication request.\n\n! Check fit on screen before you check it in plastic — an assembly interference check is free, a failed print costs a day.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "9ed32da1-dd2f-4b7b-8a51-b13d95f9f6ba",
+      "slug": "prototype-guide",
+      "kind": "guide",
+      "title": "Prototype Guide",
+      "summary": "How to choose the right prototype fidelity, plan the build, work safely, and document everything for the Prototyping rubric.",
+      "stage": "prototype",
+      "sort_order": 70,
+      "body": "A prototype is a question, not an answer. Each version exists to test something specific — build the smallest, fastest thing that tests your riskiest assumption.\n\n# Pick the right fidelity\n\n- Looks-like: cardboard, foam, tape — tests size, shape, and ergonomics in hours.\n- Works-like: rough mechanism from scrap — tests whether the core function is even possible.\n- Looks-like-works-like: near-final materials — tests the real user experience.\n- Match fidelity to the question. Don't 3D print what cardboard can answer.\n\n# Plan the build\n\n1. Write down the question this prototype answers before you touch materials.\n2. List materials and check supplies — file a supply request early if something's missing.\n3. Divide the build into sub-assemblies so teammates can work in parallel.\n4. Estimate time honestly, then add 50% — builds always overrun.\n\n# Shop safety\n\n[ ] Safety glasses on before any tool starts.\n[ ] Know where the emergency stops are for every machine you use.\n[ ] Never use a tool you haven't been trained and signed off on.\n[ ] Clean as you go — a cluttered bench causes accidents.\n\n# Document as you build\n\nKeep a Prototype Log entry per build session: what you built, photos at each stage, what worked, what broke, and what you'll change next. The Prototyping rubric rewards visible iteration — version 1, version 2, and the reason version 3 exists.\n\n! Photograph failures immediately. A broken part with a note about why it broke is some of the most valuable evidence in your notebook.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "1ff059ec-7c58-4bb8-8a42-0524ff9aa120",
+      "slug": "testing-guide",
+      "kind": "guide",
+      "title": "Testing Guide",
+      "summary": "How to design fair tests, collect trustworthy data, and turn results into iteration decisions.",
+      "stage": "test",
+      "sort_order": 80,
+      "body": "Testing is how you find out whether your design actually works — before your client does. A good test is planned before it's run, repeated enough to trust, and reported honestly whether it passes or fails.\n\n# Design the test\n\n1. Write a hypothesis: 'We expect ___ when ___ because ___.'\n2. Write a procedure another team could follow exactly — steps, tools, settings.\n3. Identify variables: what you change, what you measure, what you hold constant.\n4. Build a data table before testing so you can't cherry-pick results afterward.\n5. Plan at least 3 trials per condition; 5 is better.\n\n# While testing\n\n- Record everything, including runs that went wrong — note why and re-run.\n- One person runs the test, another records — swap roles between trials.\n- Photograph or film each trial; raw test data is a required mission artifact.\n- Never round, estimate, or 'fix' a measurement after the fact.\n\n# Analyze honestly\n\nCompute averages, look at the spread between trials, and compare results against your requirements — not against your hopes. If the design failed a test, that is a successful experiment: you learned something before the client did. Say so plainly in your Testing Log.\n\n# From results to iteration\n\nEvery test should end with a decision: pass and move on, or fail and iterate. State the decision and the specific change you'll make, then log it — that decision trail is what the Iterate stage is made of. Use the Testing Sheet template to capture each test cleanly.\n\n! Test one change at a time. If you change two things and performance improves, you'll never know which one did it.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "837dc46c-3258-4398-b81c-d3f413f7c64d",
+      "slug": "decision-matrix",
+      "kind": "template",
+      "title": "Decision Matrix",
+      "summary": "Score concepts against weighted criteria to make a documented, defensible selection.",
+      "stage": null,
+      "sort_order": 160,
+      "body": "Use this with the Decision Matrix Guide. Score as a team, one criterion at a time, and never touch the weights after seeing totals.\n\n# Template\n\n@ Concepts | Your 3–6 finalists, named and sketched.\n\n@ Criteria & weights | 4–6 criteria from your requirements, each weighted 1–5 by client importance.\n\n@ Scoring anchors | For each criterion, what does a 1 look like? What does a 5 look like?\n\n@ Score table | Score × weight for every cell; total each column.\n\n@ Decision & rationale | The winner, why, and what you'll watch for as you prototype it.\n\n! Attach the completed matrix to your Select-stage notebook entry — it's strong rubric evidence for a justified selection.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "098edd76-1008-44a3-bb22-91f91fbb2c82",
+      "slug": "presentation-guide",
+      "kind": "guide",
+      "title": "Presentation Guide",
+      "summary": "How to structure, design, rehearse, and deliver a final presentation that does your engineering work justice.",
+      "stage": "present",
+      "sort_order": 90,
+      "body": "Engineers win or lose work in presentations. Your final presentation is the story of a real problem, a real client, and a tested solution — tell it like one.\n\n# Structure the story\n\n1. The need: who has the problem and why it matters (use the client's own words).\n2. The journey: key decisions, dead ends, and what you learned — briefly.\n3. The solution: what you built and how it works.\n4. The evidence: test data that proves it meets requirements.\n5. The ask: next steps, limitations, and what you'd do with more time.\n\n# Slides that work\n\n- One idea per slide; big visuals, few words.\n- Photos of your actual prototypes beat clip art every time.\n- Show real data in simple charts — label axes and units.\n- Check readability from the back of the room.\n\n# The live demo\n\n- A working 30-second demo outweighs five slides of claims.\n- Have a backup plan: photos and video ready if the demo fails.\n- Assign one person to run the demo — everyone else stays in role.\n\n# Rehearse like engineers\n\n1. Run the full presentation out loud at least twice, timed.\n2. Every speaker practices their transitions — handoffs are where presentations stumble.\n3. Anticipate the three hardest questions and assign who answers each.\n4. Use the Presentation Planner template to lock in roles and outline.\n\n! If something failed during the project, say what you learned instead of hiding it — engineers who own their failures are trusted with bigger problems.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "fbd69012-e86a-4cbb-88d6-a41f3afb34dc",
+      "slug": "reflection-guide",
+      "kind": "guide",
+      "title": "Reflection Guide",
+      "summary": "How to write honest, specific reflections that connect your project experience to your growth as an engineer.",
+      "stage": "reflect",
+      "sort_order": 100,
+      "body": "Reflection is where experience becomes learning. A good reflection is specific, honest, and connected to evidence — not a victory lap or an apology.\n\n# Individual prompts\n\n- What decision would you make differently, and what do you know now that you didn't then?\n- Where did you grow the most — a skill, a habit, or an attitude?\n- What did you contribute that the team couldn't have done without?\n- Which notebook entry are you proudest of, and why?\n\n# Team prompts\n\n- When did the team work best together? What conditions made that possible?\n- Where did communication break down, and what will you change next project?\n- Did everyone carry a fair share? How do you know?\n- What would you tell next year's teams to do in week one?\n\n# Connect to your learning targets\n\nLook at your rubric scores for time management, desirability, and prototyping. For each one, cite the evidence that earned the level and name one concrete thing that would move you up a level next time. Use the Reflection Template to structure it.\n\n! Specific beats vague: 'I learned to communicate better' says nothing; 'I started posting my task status before standup after I blocked Maya for two days' says everything.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "448a65b3-4239-4c19-a26b-c429dac1aaf7",
+      "slug": "engineering-ethics-guide",
+      "kind": "guide",
+      "title": "Engineering Ethics Guide",
+      "summary": "The professional standards engineers are held to — safety, honest data, credit, and responsibility — and how they apply to your project.",
+      "stage": null,
+      "sort_order": 110,
+      "body": "Engineering codes of ethics exist because engineering failures hurt people. The same standards that govern professional engineers apply to your project — scaled down, but never optional.\n\n# Safety first\n\n- Hold safety above schedule, budget, and grades — always.\n- Report hazards immediately, even if you caused them.\n- Design for the user who misuses your product, not just the one who reads instructions.\n\n# Honest data\n\n- Report failed tests with the same prominence as passed ones.\n- Never adjust, omit, or invent data to make results look better.\n- State uncertainty: '3 trials, results varied by 15%' is honest; 'it works' is not.\n\n# People and credit\n\n- Cite every source, image, and idea that isn't yours.\n- Credit teammates accurately — in notebooks, presentations, and reflections.\n- Keep client information confidential; ask before quoting them publicly.\n- Give feedback that is honest and kind; receive it without defensiveness.\n\n# Sustainability\n\n- Choose materials and processes with waste in mind.\n- Design for repair and reuse where you can.\n- Count the full cost of your solution — including disposal.\n\n! The ethical test: would you be comfortable defending this decision in front of your client, your teacher, and the person most affected by it?",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "7b370f52-c6c0-41b5-8325-bbfbe37226ad",
+      "slug": "time-management-guide",
+      "kind": "guide",
+      "title": "Time Management Guide",
+      "summary": "How engineering teams plan backward from deadlines, run sprints, and use daily standups to deliver on time — the core of the Time Management rubric.",
+      "stage": null,
+      "sort_order": 120,
+      "body": "Projects don't fail at the deadline — they fail in week two, quietly. Time management in engineering is a team discipline: plan backward, work in sprints, surface blockers daily.\n\n# Plan backward from the deadline\n\n1. Put the final presentation date on the calendar first.\n2. Work backward: testing needs a week, so the prototype must work by ___.\n3. Mark the stage gates for each workflow stage and agree on them as a team.\n4. Leave the final week for iteration and rehearsal — never for first-time fabrication.\n\n# Run your week in sprints\n\n- Plan each sprint with the Sprint Planner template: one goal, few tasks, clear owners.\n- Every task has a 'definition of done' — agreed before work starts.\n- Move tasks on the Kanban board daily so the whole team sees real status.\n- End each sprint by asking: what's done, what slipped, and why?\n\n# The daily 5-minute standup\n\n- What did I finish since yesterday?\n- What will I finish today?\n- What's blocking me — and who can unblock it?\n\n# Avoiding crunch\n\nIf you're behind, cut scope — don't cut testing or documentation. A smaller solution that works beats an ambitious one that doesn't. Raise schedule risks in your team's Risk Register the moment you see them, not the night before the deadline.\n\n! If everything is a priority, nothing is. Each sprint, name the ONE task that matters most and protect it.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "84598e5e-7ccf-4c9b-bea7-5edb7dcba7ba",
+      "slug": "manufacturing-guide",
+      "kind": "guide",
+      "title": "Manufacturing Guide",
+      "summary": "How to choose a fabrication process, design parts that can actually be made, and submit clean fabrication requests.",
+      "stage": "prototype",
+      "sort_order": 130,
+      "body": "A design isn't finished when it looks right on screen — it's finished when it can be made, repeatedly, within tolerance. Designing for manufacturing means respecting the limits of the process before you commit to it.\n\n# Choose the process\n\n- 3D printing: complex shapes, low strength in layer direction, slow — best for prototypes and small parts.\n- Laser cutting: fast, precise flat parts from sheet material — best for enclosures, brackets, and linkages.\n- Hand tools and shop tools: strong, quick for simple geometry — best for structural frames and one-offs.\n- Combine processes: laser-cut frame + printed brackets beats forcing one process to do everything.\n\n# Design for the process\n\n[ ] 3D printing: walls ≥ 1.2 mm, avoid unsupported overhangs past 45°, orient for strength.\n[ ] Laser cutting: account for kerf (~0.1–0.3 mm) in press-fits; keep features larger than material thickness.\n[ ] All processes: can the tool actually reach this feature?\n[ ] Check your school's available materials before designing around them.\n\n# Tolerance and fit\n\nNo machine makes exact dimensions. Decide which dimensions are critical, state their tolerances ('20.0 ± 0.2 mm'), and design clearances for everything else. For mating parts, prototype the interface first — a small test fit coupon saves a full failed print.\n\n# Submitting a fabrication request\n\n1. Prepare the file (STL or DXF) and verify it opens correctly.\n2. Fill in the Fabrication Request template: material, quantity, critical dimensions, deadline.\n3. Submit it through Supply Requests in the app and watch the queue for approval.\n4. Pick up parts promptly and inspect them against your drawing before assembly.\n\n! Talk to the fabricator before you finalize the design. Ten minutes of questions saves a week of rework.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "6f8c859f-54c1-4eb4-82ec-4c08e269d655",
+      "slug": "sprint-planner",
+      "kind": "template",
+      "title": "Sprint Planner",
+      "summary": "Plan one week of team work: a single goal, owned tasks, and a shared definition of done.",
+      "stage": null,
+      "sort_order": 140,
+      "body": "Fill this out at the start of every sprint — one page, five minutes, whole team. Keep it visible and check tasks off on the Kanban board as they move.\n\n# Template\n\n@ Sprint name | A short, memorable name for the week — e.g., 'Drivetrain Week'.\n\n@ Sprint goal | ONE sentence: what will be true at the end of this sprint that isn't true now?\n\n@ Dates | Start and end date. A sprint is one school week by default.\n\n@ Tasks & owners | Each task: what, who, and its definition of done. No ownerless tasks.\n\n@ Definition of done (sprint) | How will you demonstrate the goal is met — a working mechanism, a logged test, a reviewed drawing?\n\n@ Risks | What could derail this sprint? Add big ones to the Risk Register.\n\n! If a task can't be finished inside one sprint, split it — half-done tasks hide schedule risk.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "ef52e9af-90b0-476b-a379-fb9563fb7edc",
+      "slug": "client-notes",
+      "kind": "template",
+      "title": "Client Notes",
+      "summary": "Structure for capturing a client meeting: their goals, exact quotes, constraints, and follow-ups.",
+      "stage": null,
+      "sort_order": 170,
+      "body": "Bring this to every client interaction. The client's own words are the backbone of your need statement and your desirability evidence.\n\n# Template\n\n@ Meeting date & attendees | Who from the client side and who from your team.\n\n@ Client's goals in their words | Summarize, then mark anything you paraphrased vs. quoted.\n\n@ Key quotes | Exact sentences, in quotation marks, with the speaker's name.\n\n@ Constraints & requirements | Budget, deadlines, size limits, must-haves, deal-breakers.\n\n@ Open questions | What you still don't know and who can answer it.\n\n@ Follow-ups | What you promised to send or check, and by when.\n\n! Send the client a short recap within a day — catching a misunderstanding now is free; catching it after fabrication is not.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "0f198d3b-2b58-4017-810c-18a4a7f78015",
+      "slug": "testing-sheet",
+      "kind": "template",
+      "title": "Testing Sheet",
+      "summary": "One page per test: hypothesis, procedure, raw data, and the decision the results force.",
+      "stage": null,
+      "sort_order": 180,
+      "body": "Fill in everything above the data table before you run a single trial. Pair this with the Testing Guide.\n\n# Template\n\n@ Test name & date | Name the requirement this test checks — e.g., 'Lift capacity ≥ 2 kg'.\n\n@ Hypothesis | We expect ___ when ___ because ___.\n\n@ Procedure | Numbered steps another team could repeat exactly.\n\n@ Variables | What you change, what you measure (with units), what you hold constant.\n\n@ Data table | Trial number, measurements, notes — at least 3 trials per condition.\n\n@ Results | Average, spread, and pass/fail against the requirement.\n\n@ Decision & next step | Pass and move on, or iterate — and the specific change you'll make.\n\n! File the completed sheet as a Testing Log entry — raw test data is a required Test-stage mission artifact.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "56ce341c-ff45-4e7a-bf1f-078a70c6ca85",
+      "slug": "fabrication-request",
+      "kind": "template",
+      "title": "Fabrication Request",
+      "summary": "Everything a fabricator needs to make your part correctly the first time.",
+      "stage": null,
+      "sort_order": 190,
+      "body": "A clear fabrication request gets parts made right the first time. Submit it through Supply Requests in the app with these details attached.\n\n# Template\n\n@ Part name & file | Descriptive name plus the STL/DXF file or a Drive link.\n\n@ Material | Specific material and thickness — '3 mm birch plywood', not 'wood'.\n\n@ Quantity | How many, plus spares if the part is fragile.\n\n@ Critical dimensions & tolerances | Which dimensions must be exact, and how exact — e.g., 'hole Ø 20.0 ± 0.2 mm'.\n\n@ Needed by | Real date, tied to your sprint plan — not 'ASAP'.\n\n@ Notes for the fabricator | Orientation, finish, or anything not obvious from the file.\n\n! Check the Manufacturing Guide's design-for-process checklist before submitting — it catches most failed builds.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "671b8252-ea0c-4879-82b4-3fb968feaf54",
+      "slug": "supply-request",
+      "kind": "template",
+      "title": "Supply Request",
+      "summary": "Request materials or supplies with enough justification for a fast approval.",
+      "stage": null,
+      "sort_order": 200,
+      "body": "Requests get approved fastest when the purpose is clear. Submit through Supply Requests in the app; use this structure for the details field.\n\n# Template\n\n@ Item | Exact item — name, size, spec, or a link to the product.\n\n@ Quantity | How much you need, including reasonable spares.\n\n@ Purpose | What this enables in your project — tie it to a requirement or test.\n\n@ Needed by | The sprint or build session it supports.\n\n@ Budget estimate | Approximate cost and where you found it.\n\n! Check the lab's existing stock first — a request for something already on the shelf slows down the queue for everyone.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "a28b2deb-92f5-4732-85c3-fa02fecd3ef6",
+      "slug": "reflection-template",
+      "kind": "template",
+      "title": "Reflection Template",
+      "summary": "A structure for honest end-of-stage or end-of-project reflections tied to your learning targets.",
+      "stage": null,
+      "sort_order": 210,
+      "body": "Use at the end of each major stage and at project close. Answer in specifics — name entries, dates, and decisions. Pair with the Reflection Guide.\n\n# Template\n\n@ What went well | Two or three specifics, with evidence — entries, tests, moments.\n\n@ What was hard | The honest version. What cost you time, quality, or team energy?\n\n@ What I learned | A skill, a concept, or something about how you work.\n\n@ Evidence I can point to | Notebook entries, test sheets, or CAD versions that prove the growth.\n\n@ My learning targets | For time management, desirability, and prototyping: where am I, and what would move me up a level?\n\n@ Next steps | One to three concrete commitments for the next stage or project.\n\n! Write it while the stage is fresh — reflections written the day the stage ends are worth twice the ones written at semester's end.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    },
+    {
+      "id": "0bcdc82a-3684-4456-aae2-0f387978f020",
+      "slug": "presentation-planner",
+      "kind": "template",
+      "title": "Presentation Planner",
+      "summary": "Lock in your message, outline, roles, and rehearsal schedule before you open your slide tool.",
+      "stage": null,
+      "sort_order": 220,
+      "body": "Plan the presentation on paper first. Every decision here is cheaper than a decision made while staring at slides. Pair with the Presentation Guide.\n\n# Template\n\n@ Audience | Who is in the room and what do they care about most?\n\n@ One-sentence message | If they remember one thing: 'We built ___ that ___ for ___.'\n\n@ Story outline | Need → journey → solution → evidence → ask. One line per beat.\n\n@ Visuals & demo plan | Which photos, charts, and the 30-second live demo — plus the backup plan.\n\n@ Speaker roles | Who covers which section, and who runs the demo and Q&A.\n\n@ Rehearsal schedule | Two full timed run-throughs, with dates.\n\n@ Anticipated questions | The three hardest questions and who answers each.\n\n! Time the rehearsal and cut the weakest content first — every minute over the limit taxes your audience's attention.",
+      "updated_by": null,
+      "created_at": "2026-10-06T14:48:12.221Z",
+      "updated_at": "2026-10-06T14:48:12.221Z"
+    }
+  ],
+  "rubric_criteria": [
+    {
+      "id": "10f40872-f006-4a55-8b33-fdff2480000a",
+      "target_id": "ea827267-767f-41f8-9b27-71ada6f6b775",
+      "level": "advanced",
+      "criterion": "Plans work in sprints with clear goals, breaks tasks into actionable steps, and adjusts the plan proactively when the schedule slips.",
+      "sort_order": 1,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "27a15702-0acc-4a6f-8203-9cf35e535b87",
+      "target_id": "ea827267-767f-41f8-9b27-71ada6f6b775",
+      "level": "advanced",
+      "criterion": "Anticipates bottlenecks — materials, fabrication queue, client availability — and builds buffer time into the team plan.",
+      "sort_order": 2,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "aa735127-7ac1-477a-bca5-67c2b052cf34",
+      "target_id": "ea827267-767f-41f8-9b27-71ada6f6b775",
+      "level": "advanced",
+      "criterion": "Helps teammates stay on task and re-prioritizes the team workload without being prompted.",
+      "sort_order": 3,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "23448823-74a1-4ae6-88b7-8d817893991c",
+      "target_id": "ea827267-767f-41f8-9b27-71ada6f6b775",
+      "level": "proficient",
+      "criterion": "Uses class time purposefully and completes assigned tasks by agreed deadlines with only occasional reminders.",
+      "sort_order": 1,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "7e2f43d3-f3a0-4859-ae0f-629117fc75df",
+      "target_id": "ea827267-767f-41f8-9b27-71ada6f6b775",
+      "level": "proficient",
+      "criterion": "Contributes to sprint planning and keeps personal task status current on the team board.",
+      "sort_order": 2,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "9f5851b0-0acf-4859-891a-a16b8306e62a",
+      "target_id": "ea827267-767f-41f8-9b27-71ada6f6b775",
+      "level": "proficient",
+      "criterion": "Meets major project milestones on time.",
+      "sort_order": 3,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "9645835c-b960-406c-b02f-ae6cfe635d35",
+      "target_id": "18d6b4cc-725f-4d49-acf4-eb44fd5fa825",
+      "level": "advanced",
+      "criterion": "Gathers direct evidence of user needs (interviews, observations, surveys) and cites it when defining the problem and justifying design decisions.",
+      "sort_order": 1,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "92c642d2-e97e-44e5-9646-bf5920830f08",
+      "target_id": "18d6b4cc-725f-4d49-acf4-eb44fd5fa825",
+      "level": "advanced",
+      "criterion": "Validates desirability by testing concepts or prototypes with real users or stakeholders and iterates based on their feedback.",
+      "sort_order": 2,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "9de6a200-d057-4f8b-99d1-7e3b989807c7",
+      "target_id": "18d6b4cc-725f-4d49-acf4-eb44fd5fa825",
+      "level": "advanced",
+      "criterion": "Clearly articulates who benefits, why they want it, and what would make them choose this solution over alternatives.",
+      "sort_order": 3,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "eff931e4-be1c-4688-b4f9-fe37b08f4c2b",
+      "target_id": "18d6b4cc-725f-4d49-acf4-eb44fd5fa825",
+      "level": "proficient",
+      "criterion": "Identifies the client or user and their needs from provided information or at least one stakeholder interaction.",
+      "sort_order": 1,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "506e568c-7278-4a6d-9b30-7600bf9cbbf1",
+      "target_id": "18d6b4cc-725f-4d49-acf4-eb44fd5fa825",
+      "level": "proficient",
+      "criterion": "Explains how the chosen concept addresses the identified user needs.",
+      "sort_order": 2,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "6635a4ab-a4fc-4c7c-aeb1-e9c6797165eb",
+      "target_id": "18d6b4cc-725f-4d49-acf4-eb44fd5fa825",
+      "level": "proficient",
+      "criterion": "Incorporates at least one piece of user or client feedback into the design.",
+      "sort_order": 3,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "73bd998b-51d8-4639-b8eb-3bf97c2c7c79",
+      "target_id": "aa611f49-8ff3-4a42-a2b6-a778c8b20c80",
+      "level": "advanced",
+      "criterion": "Builds multiple iterative prototypes, each designed to answer a specific question or test a specific risk.",
+      "sort_order": 1,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "349cfe6d-2bbe-40a6-9ebf-30231a34056d",
+      "target_id": "aa611f49-8ff3-4a42-a2b6-a778c8b20c80",
+      "level": "advanced",
+      "criterion": "Chooses appropriate fidelity and materials for the question being tested, and documents changes between iterations with testing evidence.",
+      "sort_order": 2,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "fad0c3de-a10e-42e9-ba09-523393c90239",
+      "target_id": "aa611f49-8ff3-4a42-a2b6-a778c8b20c80",
+      "level": "advanced",
+      "criterion": "Uses prototypes to communicate ideas to clients or users and gathers actionable feedback from them.",
+      "sort_order": 3,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "b22739f1-8428-407b-ad9b-be2e8cf89e07",
+      "target_id": "aa611f49-8ff3-4a42-a2b6-a778c8b20c80",
+      "level": "proficient",
+      "criterion": "Builds at least one prototype that represents the key features of the chosen concept.",
+      "sort_order": 1,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "3c5e9565-4b57-4c76-85f1-66a9a06240d6",
+      "target_id": "aa611f49-8ff3-4a42-a2b6-a778c8b20c80",
+      "level": "proficient",
+      "criterion": "Documents the prototype with photos or CAD and a prototype log entry describing what it is meant to test.",
+      "sort_order": 2,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    },
+    {
+      "id": "3fc04639-beea-45cf-9b06-3e71ae97783e",
+      "target_id": "aa611f49-8ff3-4a42-a2b6-a778c8b20c80",
+      "level": "proficient",
+      "criterion": "Makes at least one documented improvement based on testing or feedback.",
+      "sort_order": 3,
+      "created_at": "2026-10-06T14:48:12.211Z",
+      "updated_at": "2026-10-06T14:48:12.211Z"
+    }
+  ],
+  "stage_guides": [
+    {
+      "id": "8c5c86f5-cae8-40e2-99bc-ecef2c97dd99",
+      "stage": "kickoff",
+      "title": "Client Kickoff",
+      "instructions": "Meet your client and capture the need in their own words. Agree as a team on what success looks like before you design anything — every later decision gets checked against what you record here.",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "eea60d49-aff1-43ad-a6f8-af4c388b0b8f",
+      "stage": "understand",
+      "title": "Understand the Problem",
+      "instructions": "Dig into the problem until you can explain it to someone outside your team. Identify who is affected, what they need, and the constraints you must design within.",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "50406393-bd40-43b5-a5de-80a766fe6827",
+      "stage": "research",
+      "title": "Research",
+      "instructions": "Gather evidence before you generate ideas. Look for existing solutions, credible sources, and stakeholder perspectives. Log everything useful — you will cite it later.",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "91b4e3ef-b537-4cc8-8865-1ed4f6777f01",
+      "stage": "brainstorm",
+      "title": "Brainstorm",
+      "instructions": "Go for quantity, not perfection. Sketch every idea, even wild ones — judgment comes later. Build on each other's thinking and push past the obvious.",
+      "sort_order": 4,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "49d146e5-05ab-43ae-946b-c5db81672507",
+      "stage": "select",
+      "title": "Select a Concept",
+      "instructions": "Compare your strongest ideas against the success criteria from kickoff. Use evidence, not opinions, to choose one concept to carry forward.",
+      "sort_order": 5,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "7705e90d-bf54-417a-94b1-786f200c6e97",
+      "stage": "prototype",
+      "title": "Prototype",
+      "instructions": "Build to learn, not to impress. A prototype exists to answer a question about your design. Document what you build, what you changed, and why.",
+      "sort_order": 6,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "bc529f23-d82a-4430-a9c2-47105f2bd43d",
+      "stage": "test",
+      "title": "Test",
+      "instructions": "Measure your prototype against the success criteria. Record raw data honestly — unexpected results are the most valuable kind.",
+      "sort_order": 7,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "60b5a0a3-c0ef-4717-a2c3-37760ebb123b",
+      "stage": "iterate",
+      "title": "Iterate",
+      "instructions": "Use your test results to decide what to change. Each iteration should fix a specific, documented problem. Engineers iterate — that's the job.",
+      "sort_order": 8,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "a9f49bea-92e1-4375-ac3d-52dc1d6e67fe",
+      "stage": "present",
+      "title": "Present",
+      "instructions": "Tell the story of your design to your client: the problem, your evidence, your solution, and your results. Anticipate questions and answer them with data.",
+      "sort_order": 9,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "92ac992e-7c8c-4e0e-b2e3-6675a67ebeb4",
+      "stage": "reflect",
+      "title": "Reflect",
+      "instructions": "Look back at the whole project. Honest reflection on what worked, what failed, and what you learned is what turns a project into growth.",
+      "sort_order": 10,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    }
+  ],
+  "stage_missions": [
+    {
+      "id": "f8179c14-6f09-4138-b371-54c318e40b18",
+      "stage": "kickoff",
+      "title": "Client Need Statement",
+      "prompt": "In the client's own words: who is the client, what do they need, and why does it matter to them?",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "4a6093ea-0e1a-4c92-8ac6-d7592b857a76",
+      "stage": "kickoff",
+      "title": "Constraints & Success Criteria",
+      "prompt": "List every constraint (budget, time, materials, safety) and 3–5 measurable criteria that will define a successful solution.",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "5820e261-108d-46ac-a5e9-e84e4bb11982",
+      "stage": "kickoff",
+      "title": "Team Agreement",
+      "prompt": "Record your team roles, meeting norms, and how you will make decisions when you disagree.",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "cc223eaa-f619-49a5-bbab-239fda118d79",
+      "stage": "understand",
+      "title": "Problem Statement",
+      "prompt": "Write a \"How might we…\" statement that frames the problem without jumping to a solution.",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "af3809c5-23f5-4eb9-8ada-54f68ce2925b",
+      "stage": "understand",
+      "title": "Stakeholder Map",
+      "prompt": "Who is affected by this problem? List the stakeholders and what each one needs from a solution.",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "f02402fe-37ed-4770-99ed-0afe632fabec",
+      "stage": "understand",
+      "title": "Current Solutions Scan",
+      "prompt": "What solutions already exist? Document at least two and explain where each one falls short.",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "dd41ec6c-5d17-44b6-8726-76cb3be53c0d",
+      "stage": "research",
+      "title": "Source Log",
+      "prompt": "Log at least three credible sources (articles, data, experts) with a one-line takeaway from each.",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "f301329c-907a-4ebf-8f11-bdacdd7363be",
+      "stage": "research",
+      "title": "Interview Notes",
+      "prompt": "Interview a stakeholder or expert and record the questions you asked and the most surprising answers.",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "a1f1faab-ac05-4bc9-821a-792c80dd4467",
+      "stage": "research",
+      "title": "Key Findings",
+      "prompt": "Summarize the findings that most changed your team's thinking about the problem.",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "8b01fadd-889e-4146-9f4e-a82ced17892c",
+      "stage": "brainstorm",
+      "title": "Idea Wall",
+      "prompt": "Sketch or describe at least 10 distinct ideas. Quantity over quality — no filtering yet.",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "020b4b01-84c5-4ec5-9ff0-477078a836d4",
+      "stage": "brainstorm",
+      "title": "Idea Stretch",
+      "prompt": "Take your two most ordinary ideas and push each one further (combine, reverse, scale). Record the results.",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "2fe990b4-87f9-4847-a57c-61de7630286a",
+      "stage": "brainstorm",
+      "title": "Top Three",
+      "prompt": "Pick your three strongest ideas and give one sentence of evidence for each.",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "763246e6-cd6a-4915-bac6-f552fc230f7a",
+      "stage": "select",
+      "title": "Decision Matrix",
+      "prompt": "Score your top concepts against the success criteria from kickoff. Include the matrix and the scores.",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "7fff0569-b664-4731-b5b9-368bbc746383",
+      "stage": "select",
+      "title": "Chosen Concept",
+      "prompt": "Name the concept you are carrying forward and justify the choice with evidence from your matrix and research.",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "496a9bf5-ee78-4802-a711-aaa667085819",
+      "stage": "select",
+      "title": "Concept Sketch",
+      "prompt": "Post a labeled sketch or CAD screenshot of the chosen concept with key dimensions or features called out.",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "7b8ffd71-05c0-402f-bbca-4f8027603b77",
+      "stage": "prototype",
+      "title": "Build Plan",
+      "prompt": "Before building: list materials, tools, and steps. What question is this prototype meant to answer?",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "d1fe37e2-710d-4d1c-aff7-1e7ac3ce0b7d",
+      "stage": "prototype",
+      "title": "Prototype Log v1",
+      "prompt": "Document your first build — photos or links, what worked during the build, and what you changed on the fly.",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "f4481ee3-c7bf-4289-926f-c63e5bc769ef",
+      "stage": "prototype",
+      "title": "Plan vs. Reality",
+      "prompt": "What differed between your build plan and what actually happened? What will you change in the next version?",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "1613c6ac-9c83-4123-9abe-dcd90c0bc770",
+      "stage": "test",
+      "title": "Testing Plan",
+      "prompt": "Define what you will measure, how you will measure it, and how many trials you will run.",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "231eb3a6-0875-4376-a504-1ed8a41a97bb",
+      "stage": "test",
+      "title": "Raw Test Data",
+      "prompt": "Record your raw results — numbers, observations, photos. Include failures.",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "08045a93-a9a3-401f-b055-4d9aaf04d02d",
+      "stage": "test",
+      "title": "Results vs. Criteria",
+      "prompt": "Compare your results against each success criterion from kickoff: met, partially met, or not met — with evidence.",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "fc74263a-eccb-4a2e-ab7f-5c6b6eb70e71",
+      "stage": "iterate",
+      "title": "Failure Analysis",
+      "prompt": "Pick the most important thing that did not work and explain why, using your test data.",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "df1f9ec7-7ec7-44c4-b85d-5463e2ddcb6a",
+      "stage": "iterate",
+      "title": "Design Changes",
+      "prompt": "List the specific changes you made for the next iteration and the evidence behind each one.",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "b343f71b-ab28-48d6-ae33-3691b1d63706",
+      "stage": "iterate",
+      "title": "Re-Test Results",
+      "prompt": "Test the improved version and record whether the changes actually fixed the problem.",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "787f0ab1-852d-4755-bece-7a8ec74f9995",
+      "stage": "present",
+      "title": "Presentation Storyboard",
+      "prompt": "Outline your presentation: the problem, your evidence, the solution, and the results — in order.",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "3aa9a532-93dd-4b48-a9d7-3ac84164d727",
+      "stage": "present",
+      "title": "Delivery Reflection",
+      "prompt": "After presenting: how did it go? What landed well with the client, and what did not?",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "671297dc-6d76-4ba6-8a58-fd691c488423",
+      "stage": "present",
+      "title": "Q&A Log",
+      "prompt": "Record the questions your client or audience asked and how your team answered each one.",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "fe827b63-d296-4401-81eb-592ff4467bab",
+      "stage": "reflect",
+      "title": "Individual Reflection",
+      "prompt": "What did you personally learn — about engineering, about your client, about working on a team?",
+      "sort_order": 1,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "3bbfec06-9692-4a33-9292-147da920819f",
+      "stage": "reflect",
+      "title": "Team Retrospective",
+      "prompt": "As a team: what would you do differently if you started this project over today?",
+      "sort_order": 2,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    },
+    {
+      "id": "2f1a945f-849c-48cb-9022-608223ba6ef9",
+      "stage": "reflect",
+      "title": "Growth Evidence",
+      "prompt": "Point to a specific moment or entry in this notebook where your thinking leveled up, and explain why it mattered.",
+      "sort_order": 3,
+      "updated_at": "2026-10-06T14:48:12.207Z",
+      "created_at": "2026-10-06T14:48:12.207Z"
+    }
+  ]
+}

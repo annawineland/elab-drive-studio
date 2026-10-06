@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BookOpen,
   CalendarRange,
@@ -10,10 +10,17 @@ import {
   Files,
   Loader2,
   Plus,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { listStudioDriveResources, type DriveFile } from "@/lib/drive.functions";
+import {
+  driveConfigured,
+  listStudioDriveResources,
+  preloadGoogleDrive,
+  syncClassDrive,
+  type DriveFile,
+} from "@/lib/google-drive";
 import {
   pacingWeeksQueryOptions,
   parseLocalDate,
@@ -23,7 +30,7 @@ import {
 import { resourceSlug, type ResourceDocRow } from "@/lib/resource-doc-format";
 import { RESOURCE_DOCS_KEY, resourceDocsQueryOptions } from "@/lib/resource-queries";
 import { stageLabel, WORKFLOW_STAGES } from "@/lib/studio";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PageHeader } from "@/components/studio-ui";
 import { Button } from "@/components/ui/button";
@@ -64,7 +71,10 @@ export const Route = createFileRoute("/_authenticated/resources/")({
 });
 
 function norm(s: string) {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
 
 /** Match a Drive file to a library document by fuzzy name containment. */
@@ -112,7 +122,6 @@ function ResourceRow({ doc, file }: { doc: ResourceDocRow; file?: DriveFile }) {
   );
 }
 
-
 const STARTER_BODY: Record<"guide" | "template", string> = {
   guide:
     "Write the opening paragraph here — what this guide is for and when students should use it.\n\n# First section\n\n- First point\n- Second point\n\n! A helpful tip for students.",
@@ -144,7 +153,7 @@ function NewResourceDialog({
       let slug = base;
       for (let n = 2; taken.has(slug); n++) slug = `${base}-${n}`;
       const maxOrder = docs.reduce((m, d) => Math.max(m, d.sort_order), 0);
-      const { error } = await supabase.from("resource_docs").insert({
+      const { error } = await db.from("resource_docs").insert({
         slug,
         kind,
         title: title.trim(),
@@ -248,11 +257,25 @@ function ResourcesPage() {
     retry: false,
   });
   const [newOpen, setNewOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const canSyncDrive = isTeacher && driveConfigured();
+
+  // Load Google's sign-in script up front so Sync opens its popup on the click.
+  useEffect(() => {
+    if (canSyncDrive) preloadGoogleDrive().catch(() => {});
+  }, [canSyncDrive]);
+
+  const syncDrive = useMutation({
+    mutationFn: syncClassDrive,
+    onSuccess: (count) => {
+      toast.success(`Synced ${count} file${count === 1 ? "" : "s"} from your Drive`);
+      queryClient.invalidateQueries({ queryKey: ["studio-drive-resources"] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
 
   const pacingWeeks = pacing.data ?? [];
-  const currentWeek = pacingWeeks.find(
-    (w) => weekStatus(w, todayLocalISO()) === "current",
-  );
+  const currentWeek = pacingWeeks.find((w) => weekStatus(w, todayLocalISO()) === "current");
   const firstWeek = pacingWeeks[0];
   const lastWeek = pacingWeeks[pacingWeeks.length - 1];
   const pacingRange =
@@ -320,13 +343,38 @@ function ResourcesPage() {
         </p>
       )}
 
-      {(drive.isError || drive.data?.configured === false) && (
+      {canSyncDrive ? (
         <Card>
-          <CardContent className="p-4 text-sm text-muted-foreground">
-            The class Drive isn't reachable right now. The library will fill in automatically once
-            it's connected — check back soon.
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm text-muted-foreground">
+            <span>
+              {files.length
+                ? `${files.length} files from your Google Drive show up next to matching guides and templates.`
+                : "Sync guides and templates from your Google Drive so students see them alongside the library."}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => syncDrive.mutate()}
+              disabled={syncDrive.isPending}
+            >
+              {syncDrive.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+              Sync from my Drive
+            </Button>
           </CardContent>
         </Card>
+      ) : (
+        (drive.isError || drive.data?.configured === false) && (
+          <Card>
+            <CardContent className="p-4 text-sm text-muted-foreground">
+              The class Drive isn't reachable right now. The library will fill in automatically once
+              it's connected — check back soon.
+            </CardContent>
+          </Card>
+        )
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -357,10 +405,7 @@ function ResourcesPage() {
         </Card>
       </div>
 
-
-      {isTeacher && (
-        <NewResourceDialog open={newOpen} onOpenChange={setNewOpen} docs={all} />
-      )}
+      {isTeacher && <NewResourceDialog open={newOpen} onOpenChange={setNewOpen} docs={all} />}
     </div>
   );
 }

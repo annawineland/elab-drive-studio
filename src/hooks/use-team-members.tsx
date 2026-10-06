@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 
 export interface TeamMember {
   user_id: string;
@@ -13,7 +13,7 @@ export function useTeamMembers(teamId: string | undefined) {
     queryKey: ["team-members", teamId],
     enabled: !!teamId,
     queryFn: async () => {
-      const { data: mems, error } = await supabase
+      const { data: mems, error } = await db
         .from("team_members")
         .select("user_id, member_role")
         .eq("team_id", teamId!)
@@ -21,7 +21,7 @@ export function useTeamMembers(teamId: string | undefined) {
       if (error) throw error;
       if (!mems || mems.length === 0) return [] as TeamMember[];
       const ids = mems.map((m) => m.user_id);
-      const { data: profs, error: pErr } = await supabase
+      const { data: profs, error: pErr } = await db
         .from("profiles")
         .select("id, full_name")
         .in("id", ids);

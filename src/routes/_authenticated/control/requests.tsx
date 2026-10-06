@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Check, Inbox, Package, Wrench, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { TeacherOnly } from "@/components/teacher-only";
 import { PageHeader, EmptyState, StatusBadge } from "@/components/studio-ui";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ function RequestQueuePage() {
   const requests = useQuery({
     queryKey: ["control-requests", tab],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("requests")
         .select("*")
         .eq("status", tab)
@@ -47,9 +47,9 @@ function RequestQueuePage() {
       const userIds = [...new Set(data.map((r) => r.user_id))];
       const teamIds = [...new Set(data.map((r) => r.team_id).filter(Boolean))] as string[];
       const [profs, teams] = await Promise.all([
-        supabase.from("profiles").select("id, full_name").in("id", userIds),
+        db.from("profiles").select("id, full_name").in("id", userIds),
         teamIds.length
-          ? supabase.from("teams").select("id, name").in("id", teamIds)
+          ? db.from("teams").select("id, name").in("id", teamIds)
           : Promise.resolve({ data: [], error: null }),
       ]);
       if (profs.error) throw profs.error;
@@ -66,7 +66,7 @@ function RequestQueuePage() {
 
   const setStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase
+      const { error } = await db
         .from("requests")
         .update({ status, updated_at: new Date().toISOString() })
         .eq("id", id);

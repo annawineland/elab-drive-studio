@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2, UserRoundPlus, UserRoundX } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { deleteStudentAccount, listUnrosteredAccounts } from "@/lib/students.functions";
+import { db } from "@/integrations/firebase/client";
+import { deleteStudentAccount, listUnrosteredAccounts } from "@/lib/students";
 import { useAuth } from "@/hooks/use-auth";
 import { TeacherOnly } from "@/components/teacher-only";
 import { PageHeader } from "@/components/studio-ui";
@@ -145,19 +144,16 @@ function RostersPage() {
   const [nameFor, setNameFor] = useState<RosterEntry | null>(null);
   const [nameText, setNameText] = useState("");
   const [purgeFor, setPurgeFor] = useState<RosterEntry | null>(null);
-  const deleteAccount = useServerFn(deleteStudentAccount);
-  const fetchUnrostered = useServerFn(listUnrosteredAccounts);
 
   const unrostered = useQuery({
     queryKey: ["unrostered-accounts"],
-    queryFn: () => fetchUnrostered(),
+    queryFn: () => listUnrosteredAccounts(),
   });
-
 
   const mods = useQuery({
     queryKey: ["mods"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("mods").select("*").order("sort_order");
+      const { data, error } = await db.from("mods").select("*").order("sort_order");
       if (error) throw error;
       return data;
     },
@@ -166,31 +162,27 @@ function RostersPage() {
   const roster = useQuery({
     queryKey: ["control-rosters"],
     queryFn: async () => {
-      const { data: enrolls, error } = await supabase
+      const { data: enrolls, error } = await db
         .from("mod_enrollments")
         .select("id, mod_id, email, student_id, student_name")
         .order("email");
       if (error) throw error;
       const ids = [
-        ...new Set(
-          (enrolls ?? []).map((e) => e.student_id).filter((x): x is string => !!x),
-        ),
+        ...new Set((enrolls ?? []).map((e) => e.student_id).filter((x): x is string => !!x)),
       ];
       const names = new Map<string, string>();
       if (ids.length > 0) {
-        const { data: profs, error: pErr } = await supabase
+        const { data: profs, error: pErr } = await db
           .from("profiles")
           .select("id, full_name")
           .in("id", ids);
         if (pErr) throw pErr;
         (profs ?? []).forEach((p) => names.set(p.id, p.full_name));
       }
-      return (enrolls ?? []).map(
-        (e): RosterEntry => ({
-          ...e,
-          name: e.student_id ? (names.get(e.student_id) ?? null) : null,
-        }),
-      );
+      return (enrolls ?? []).map((e): RosterEntry => ({
+        ...e,
+        name: e.student_id ? (names.get(e.student_id) ?? null) : null,
+      }));
     },
   });
 
@@ -199,7 +191,7 @@ function RostersPage() {
       const { entries, invalid } = parseRosterInput(emailsText);
       if (entries.length === 0) throw new Error("No valid email addresses found");
 
-      const { data: existing, error: exErr } = await supabase
+      const { data: existing, error: exErr } = await db
         .from("mod_enrollments")
         .select("id, email")
         .eq("mod_id", addFor!.id)
@@ -218,16 +210,14 @@ function RostersPage() {
           student_name: e.name,
           added_by: user!.id,
         }));
-      const toRename = entries.filter(
-        (e) => existingByEmail.has(e.email) && e.name,
-      );
+      const toRename = entries.filter((e) => existingByEmail.has(e.email) && e.name);
 
       if (toInsert.length > 0) {
-        const { error } = await supabase.from("mod_enrollments").insert(toInsert);
+        const { error } = await db.from("mod_enrollments").insert(toInsert);
         if (error) throw error;
       }
       for (const e of toRename) {
-        const { error } = await supabase
+        const { error } = await db
           .from("mod_enrollments")
           .update({ student_name: e.name })
           .eq("id", existingByEmail.get(e.email)!);
@@ -255,7 +245,7 @@ function RostersPage() {
 
   const removeStudent = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("mod_enrollments").delete().eq("id", id);
+      const { error } = await db.from("mod_enrollments").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -267,7 +257,7 @@ function RostersPage() {
 
   const purgeStudent = useMutation({
     mutationFn: async (entry: RosterEntry) => {
-      await deleteAccount({ data: { studentId: entry.student_id! } });
+      await deleteStudentAccount(entry.student_id!);
     },
     onSuccess: () => {
       toast.success("Account and all of that student's work were deleted");
@@ -280,13 +270,11 @@ function RostersPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
-
-
   const renameMod = useMutation({
     mutationFn: async () => {
       const name = renameText.trim();
       if (!name) throw new Error("Mod name cannot be empty");
-      const { error } = await supabase.from("mods").update({ name }).eq("id", renameFor!.id);
+      const { error } = await db.from("mods").update({ name }).eq("id", renameFor!.id);
       if (error) throw error;
       return name;
     },
@@ -300,7 +288,7 @@ function RostersPage() {
 
   const setStudentName = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await db
         .from("mod_enrollments")
         .update({ student_name: nameText.trim() || null })
         .eq("id", nameFor!.id);
@@ -660,7 +648,6 @@ function RostersPage() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-
     </TeacherOnly>
   );
 }

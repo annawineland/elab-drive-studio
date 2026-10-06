@@ -39,7 +39,6 @@ import { Route as AuthenticatedResourcesIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedResourcesSlugRouteImport } from './routes/_authenticated/resources.$slug'
 import { Route as AuthenticatedResourcesPacingRouteImport } from './routes/_authenticated/resources.pacing'
 import { Route as AuthenticatedReviewTeamIdRouteImport } from './routes/_authenticated/review.$teamId'
-import { Route as OauthDriveReturnRouteImport } from './routes/oauth/drive/return'
 import { Route as AuthenticatedControlTeamTeamIdRouteImport } from './routes/_authenticated/control/team.$teamId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -205,11 +204,6 @@ const AuthenticatedReviewTeamIdRoute =
     path: '/review/$teamId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const OauthDriveReturnRoute = OauthDriveReturnRouteImport.update({
-  id: '/oauth/drive/return',
-  path: '/oauth/drive/return',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedControlTeamTeamIdRoute =
   AuthenticatedControlTeamTeamIdRouteImport.update({
     id: '/control/team/$teamId',
@@ -244,7 +238,6 @@ export interface FileRoutesByFullPath {
   '/resources/$slug': typeof AuthenticatedResourcesSlugRoute
   '/resources/pacing': typeof AuthenticatedResourcesPacingRoute
   '/review/$teamId': typeof AuthenticatedReviewTeamIdRoute
-  '/oauth/drive/return': typeof OauthDriveReturnRoute
   '/control/': typeof AuthenticatedControlIndexRoute
   '/profile/': typeof AuthenticatedProfileIndexRoute
   '/resources/': typeof AuthenticatedResourcesIndexRoute
@@ -276,7 +269,6 @@ export interface FileRoutesByTo {
   '/resources/$slug': typeof AuthenticatedResourcesSlugRoute
   '/resources/pacing': typeof AuthenticatedResourcesPacingRoute
   '/review/$teamId': typeof AuthenticatedReviewTeamIdRoute
-  '/oauth/drive/return': typeof OauthDriveReturnRoute
   '/control': typeof AuthenticatedControlIndexRoute
   '/profile': typeof AuthenticatedProfileIndexRoute
   '/resources': typeof AuthenticatedResourcesIndexRoute
@@ -311,7 +303,6 @@ export interface FileRoutesById {
   '/_authenticated/resources/$slug': typeof AuthenticatedResourcesSlugRoute
   '/_authenticated/resources/pacing': typeof AuthenticatedResourcesPacingRoute
   '/_authenticated/review/$teamId': typeof AuthenticatedReviewTeamIdRoute
-  '/oauth/drive/return': typeof OauthDriveReturnRoute
   '/_authenticated/control/': typeof AuthenticatedControlIndexRoute
   '/_authenticated/profile/': typeof AuthenticatedProfileIndexRoute
   '/_authenticated/resources/': typeof AuthenticatedResourcesIndexRoute
@@ -346,7 +337,6 @@ export interface FileRouteTypes {
     | '/resources/$slug'
     | '/resources/pacing'
     | '/review/$teamId'
-    | '/oauth/drive/return'
     | '/control/'
     | '/profile/'
     | '/resources/'
@@ -378,7 +368,6 @@ export interface FileRouteTypes {
     | '/resources/$slug'
     | '/resources/pacing'
     | '/review/$teamId'
-    | '/oauth/drive/return'
     | '/control'
     | '/profile'
     | '/resources'
@@ -412,7 +401,6 @@ export interface FileRouteTypes {
     | '/_authenticated/resources/$slug'
     | '/_authenticated/resources/pacing'
     | '/_authenticated/review/$teamId'
-    | '/oauth/drive/return'
     | '/_authenticated/control/'
     | '/_authenticated/profile/'
     | '/_authenticated/resources/'
@@ -425,7 +413,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   WelcomeRoute: typeof WelcomeRoute
-  OauthDriveReturnRoute: typeof OauthDriveReturnRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -640,13 +627,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReviewTeamIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/oauth/drive/return': {
-      id: '/oauth/drive/return'
-      path: '/oauth/drive/return'
-      fullPath: '/oauth/drive/return'
-      preLoaderRoute: typeof OauthDriveReturnRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/control/team/$teamId': {
       id: '/_authenticated/control/team/$teamId'
       path: '/control/team/$teamId'
@@ -736,18 +716,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   WelcomeRoute: WelcomeRoute,
-  OauthDriveReturnRoute: OauthDriveReturnRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

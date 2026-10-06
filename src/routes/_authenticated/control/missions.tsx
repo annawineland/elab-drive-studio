@@ -18,7 +18,7 @@ import { MissionFeedbackDialog } from "@/components/mission-feedback";
 
 import { parseMissionDescription, encodeMissionAttachment } from "@/lib/mission-attachment";
 import { resourceDocsQueryOptions } from "@/lib/resource-queries";
-import { supabase } from "@/integrations/supabase/client";
+import { db } from "@/integrations/firebase/client";
 import { TeacherOnly } from "@/components/teacher-only";
 import { WORKFLOW_STAGES, missionDueStatus, stageLabel, DUE_TONE_CLASS } from "@/lib/studio";
 import { cn } from "@/lib/utils";
@@ -52,7 +52,8 @@ export const Route = createFileRoute("/_authenticated/control/missions")({
       { title: "Missions — Mission Control" },
       {
         name: "description",
-        content: "Post daily mission briefs for your mods — they appear on every student's Studio Home.",
+        content:
+          "Post daily mission briefs for your mods — they appear on every student's Studio Home.",
       },
       { property: "og:title", content: "Missions — Mission Control" },
       { property: "og:type", content: "website" },
@@ -68,7 +69,6 @@ function MissionsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [attachment, setAttachment] = useState<{ slug: string; title: string } | null>(null);
   const [feedbackFor, setFeedbackFor] = useState<{ id: string; title: string } | null>(null);
-
 
   const [mTitle, setMTitle] = useState("");
   const [mDesc, setMDesc] = useState("");
@@ -119,7 +119,7 @@ function MissionsPage() {
   const mods = useQuery({
     queryKey: ["mods"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("mods").select("*").order("sort_order");
+      const { data, error } = await db.from("mods").select("*").order("sort_order");
       if (error) throw error;
       return data;
     },
@@ -128,7 +128,7 @@ function MissionsPage() {
   const missions = useQuery({
     queryKey: ["control-missions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("missions")
         .select("*, mods(name)")
         .order("mission_date", { ascending: false });
@@ -140,7 +140,7 @@ function MissionsPage() {
   const teams = useQuery({
     queryKey: ["control-teams-lite"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("teams").select("id, name, mod_id");
+      const { data, error } = await db.from("teams").select("id, name, mod_id");
       if (error) throw error;
       return data;
     },
@@ -149,7 +149,7 @@ function MissionsPage() {
   const completions = useQuery({
     queryKey: ["control-mission-completions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("mission_completions")
         .select("mission_id, team_id, completed_at, teams(name)")
         .order("completed_at", { ascending: false });
@@ -174,7 +174,10 @@ function MissionsPage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      const body = [mDesc.trim(), attachment ? encodeMissionAttachment(attachment.slug, attachment.title) : ""]
+      const body = [
+        mDesc.trim(),
+        attachment ? encodeMissionAttachment(attachment.slug, attachment.title) : "",
+      ]
         .filter(Boolean)
         .join("\n\n");
       const payload = {
@@ -186,8 +189,8 @@ function MissionsPage() {
         due_date: mDue || null,
       };
       const { error } = editingId
-        ? await supabase.from("missions").update(payload).eq("id", editingId)
-        : await supabase.from("missions").insert(payload);
+        ? await db.from("missions").update(payload).eq("id", editingId)
+        : await db.from("missions").insert(payload);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -201,10 +204,9 @@ function MissionsPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
-
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("missions").delete().eq("id", id);
+      const { error } = await db.from("missions").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -217,7 +219,7 @@ function MissionsPage() {
 
   const flagPastDue = useMutation({
     mutationFn: async ({ id, flag }: { id: string; flag: boolean }) => {
-      const { error } = await supabase
+      const { error } = await db
         .from("missions")
         .update({ past_due_at: flag ? new Date().toISOString() : null })
         .eq("id", id);
@@ -314,12 +316,8 @@ function MissionsPage() {
                       variant="ghost"
                       size="icon"
                       disabled={flagPastDue.isPending}
-                      onClick={() =>
-                        flagPastDue.mutate({ id: m.id, flag: !m.past_due_at })
-                      }
-                      aria-label={
-                        m.past_due_at ? "Clear past-due flag" : "Mark mission past due"
-                      }
+                      onClick={() => flagPastDue.mutate({ id: m.id, flag: !m.past_due_at })}
+                      aria-label={m.past_due_at ? "Clear past-due flag" : "Mark mission past due"}
                       title={
                         m.past_due_at
                           ? "Clear past-due flag"
@@ -348,13 +346,11 @@ function MissionsPage() {
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
-
                 </div>
                 {m.description && (
                   <p className="mt-2 text-sm text-muted-foreground">
                     <VocabText text={parseMissionDescription(m.description).text} />
                   </p>
-
                 )}
                 {parseMissionDescription(m.description).attachment && (
                   <p className="mt-2 text-xs font-medium text-primary">
@@ -368,9 +364,7 @@ function MissionsPage() {
                       search={m.stage ? { stage: m.stage, mission: m.id } : { mission: m.id }}
                     >
                       <NotebookPen className="mr-1.5 h-4 w-4" />
-                      {m.stage
-                        ? `Open ${stageLabel(m.stage)} in notebook`
-                        : "Open design notebook"}
+                      {m.stage ? `Open ${stageLabel(m.stage)} in notebook` : "Open design notebook"}
                     </Link>
                   </Button>
                 </div>
@@ -570,7 +564,6 @@ function MissionsPage() {
                       : "Post mission"}
                 </Button>
               </DialogFooter>
-
             </form>
           </DialogContent>
         </Dialog>
@@ -592,7 +585,6 @@ function MissionsPage() {
           />
         )}
       </div>
-
     </TeacherOnly>
   );
 }

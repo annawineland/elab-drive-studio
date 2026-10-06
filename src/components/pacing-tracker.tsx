@@ -1,11 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CalendarClock, Clock } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  pacingWeeksQueryOptions,
-  weekStatus,
-  type PacingWeek,
-} from "@/lib/pacing-queries";
+import { db } from "@/integrations/firebase/client";
+import { pacingWeeksQueryOptions, weekStatus, type PacingWeek } from "@/lib/pacing-queries";
 import { WORKFLOW_STAGES, stageIndex, stageLabel } from "@/lib/studio";
 import { cn } from "@/lib/utils";
 
@@ -20,8 +16,8 @@ function useTeamCoveredStageIndex(teamId?: string) {
     enabled: !!teamId,
     queryFn: async () => {
       const [missionsRes, entriesRes] = await Promise.all([
-        supabase.from("stage_missions").select("id, stage"),
-        supabase.from("entries").select("mission_id, stage").eq("team_id", teamId!),
+        db.from("stage_missions").select("id, stage"),
+        db.from("entries").select("mission_id, stage").eq("team_id", teamId!),
       ]);
       if (missionsRes.error) throw missionsRes.error;
       if (entriesRes.error) throw entriesRes.error;
@@ -46,7 +42,6 @@ function useTeamCoveredStageIndex(teamId?: string) {
   });
 }
 
-
 /**
  * Missions the team still owes: anything the teacher flagged past due, or with
  * a due date of today/tomorrow or earlier, that the team hasn't checked off.
@@ -56,19 +51,15 @@ function useTeamDueMissions(teamId?: string) {
     queryKey: ["team-due-missions", teamId],
     enabled: !!teamId,
     queryFn: async () => {
-      const teamRes = await supabase
-        .from("teams")
-        .select("mod_id")
-        .eq("id", teamId!)
-        .maybeSingle();
+      const teamRes = await db.from("teams").select("mod_id").eq("id", teamId!).maybeSingle();
       if (teamRes.error) throw teamRes.error;
       const modId = teamRes.data?.mod_id ?? null;
 
-      let q = supabase.from("missions").select("id, title, due_date, past_due_at");
+      let q = db.from("missions").select("id, title, due_date, past_due_at");
       if (modId) q = q.or(`mod_id.is.null,mod_id.eq.${modId}`);
       const [missionsRes, doneRes] = await Promise.all([
         q,
-        supabase.from("mission_completions").select("mission_id").eq("team_id", teamId!),
+        db.from("mission_completions").select("mission_id").eq("team_id", teamId!),
       ]);
       if (missionsRes.error) throw missionsRes.error;
       if (doneRes.error) throw doneRes.error;
@@ -218,9 +209,7 @@ export function PacingTracker({
       {dueSoon.length > 0 && (
         <p className="mt-1.5 flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400">
           <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <span>
-            Due today or tomorrow: {dueSoon.map((m) => m.title).join(", ")}
-          </span>
+          <span>Due today or tomorrow: {dueSoon.map((m) => m.title).join(", ")}</span>
         </p>
       )}
     </div>

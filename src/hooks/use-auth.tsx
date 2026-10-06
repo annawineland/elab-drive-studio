@@ -7,10 +7,18 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
+import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
+import { db } from "@/integrations/firebase/client";
+import { getFirebase } from "@/integrations/firebase/config";
+import { prepareAccount, signOut as firebaseSignOut } from "@/integrations/firebase/auth";
 
 export type AppRole = "teacher" | "student" | null;
+
+/** The signed-in account. Only confirmed accounts count as signed in. */
+export interface User {
+  id: string;
+  email: string | null;
+}
 
 interface AuthState {
   user: User | null;
@@ -39,8 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = useCallback(async (userId: string) => {
     const [rolesResult, profileResult] = await Promise.all([
-      supabase.from("user_roles").select("role").eq("user_id", userId),
-      supabase.from("profiles").select("full_name").eq("id", userId).maybeSingle(),
+      db.from("user_roles").select("role").eq("user_id", userId),
+      db.from("profiles").select("full_name").eq("id", userId).maybeSingle(),
     ]);
     if (rolesResult.error) throw rolesResult.error;
     if (profileResult.error) throw profileResult.error;
@@ -53,11 +61,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const hydrateProfile = async (userId: string) => {
+    const hydrateProfile = async (account: FirebaseUser) => {
       const request = ++profileRequest.current;
       setError(null);
       try {
-        const profile = await loadProfile(userId);
+        await prepareAccount(account);
+        const profile = await loadProfile(account.uid);
         if (!mounted || request !== profileRequest.current) return;
         setRole(profile.role);
         setFullName(profile.fullName);
@@ -72,45 +81,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return;
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) {
-        // Defer the profile fetch so it never blocks the auth callback.
-        setTimeout(() => {
-          if (mounted) void hydrateProfile(u.id);
-        }, 0);
-      } else {
-        profileRequest.current += 1;
-        setRole(null);
-        setFullName("");
-        setError(null);
-        setLoading(false);
-      }
-    });
-
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) {
-        void hydrateProfile(u.id);
-      } else {
-        setLoading(false);
-      }
-    });
+    let unsubscribe = () => {};
+    try {
+      unsubscribe = onAuthStateChanged(getFirebase().auth, (account) => {
+        if (!mounted) return;
+        // An email/password account stays signed out until its address is confirmed.
+        const confirmed = account?.emailVerified ? account : null;
+        setUser(confirmed ? { id: confirmed.uid, email: confirmed.email } : null);
+        if (confirmed) {
+          setLoading(true);
+          // Defer the profile fetch so it never blocks the auth callback.
+          setTimeout(() => {
+            if (mounted) void hydrateProfile(confirmed);
+          }, 0);
+        } else {
+          profileRequest.current += 1;
+          setRole(null);
+          setFullName("");
+          setError(null);
+          setLoading(false);
+        }
+      });
+    } catch (configError) {
+      setError(configError instanceof Error ? configError.message : "Sign-in is not configured");
+      setLoading(false);
+    }
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      unsubscribe();
     };
   }, [loadProfile]);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    await firebaseSignOut();
   }, []);
 
   const refresh = useCallback(async () => {
