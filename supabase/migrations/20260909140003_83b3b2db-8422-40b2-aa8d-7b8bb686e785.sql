@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.notify_teachers_of_mission_entry() FROM PUBLIC, anon, authenticated;

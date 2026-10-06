@@ -1,0 +1,5 @@
+- [ ] Class reset for new projects: archive-then-clear (teacher-only), keeps teams/rosters, clears notebooks/missions/grades/pacing
+- [ ] Explain Firebase vs. built-in Lovable Cloud database (user asked "how to connect to firebase")
+- [x] Firebase hosting question answered (not feasible; studio depends on Lovable Cloud backend) — awaiting user reply on underlying concern
+- [x] "Can I download the project?" answered (GitHub export yes; won't run standalone without Lovable Cloud)
+- [x] "How to download/export locally?" answered (Download codebase button or GitHub sync; data export via Cloud settings)

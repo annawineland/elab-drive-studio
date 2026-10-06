@@ -1,0 +1,2 @@
+CREATE POLICY "Teachers edit their feedback" ON public.feedback FOR UPDATE TO authenticated USING (author_id = auth.uid() AND has_role(auth.uid(), 'teacher'::app_role)) WITH CHECK (author_id = auth.uid() AND has_role(auth.uid(), 'teacher'::app_role));
+CREATE POLICY "Teachers delete their feedback" ON public.feedback FOR DELETE TO authenticated USING (author_id = auth.uid() AND has_role(auth.uid(), 'teacher'::app_role));
