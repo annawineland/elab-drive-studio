@@ -23,8 +23,8 @@ service cloud.firestore {
     function path(collection, id) {
       return /databases/$(database)/documents/$(collection)/$(id);
     }
-    function roleIsTeacher(userId) {
-      let role = path('user_roles', userId);
+    function roleIsTeacher(user_id) {
+      let role = path('user_roles', user_Id);
       return exists(role) && get(role).data.role == 'teacher';
     }
     function isTeacher() {
