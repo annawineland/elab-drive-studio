@@ -24,7 +24,7 @@ service cloud.firestore {
       return /databases/$(database)/documents/$(collection)/$(id);
     }
     function roleIsTeacher(user_id) {
-      let role = path('user_roles', user_Id);
+      let role = path('user_roles', user_id);
       return exists(role) && get(role).data.role == 'teacher';
     }
     function isTeacher() {
@@ -199,9 +199,12 @@ service cloud.firestore {
         || isMember(resource.data.team_id));
       allow create: if signedIn() && incoming().id == id && incoming().user_id == uid()
         && (incoming().team_id == null || isMember(incoming().team_id));
+      // Authors edit their own; teammates can edit the team's entries in place.
       allow update: if signedIn() && (
         (resource.data.user_id == uid() && incoming().user_id == uid()
           && (incoming().team_id == null || isMember(incoming().team_id)))
+        || (isMember(resource.data.team_id) && incoming().user_id == resource.data.user_id
+          && incoming().team_id == resource.data.team_id)
         || nulledOrphan('team_id', 'teams') || nulledOrphan('mission_id', 'stage_missions'));
       allow delete: if signedIn()
         && (resource.data.user_id == uid() || parentGone('user_id', 'profiles'));
@@ -262,6 +265,13 @@ service cloud.firestore {
       allow update: if teamRowReadable() && teamRowWritable();
       allow delete: if teamRowReadable() || (signedIn() && parentGone('team_id', 'teams'));
     }
+    match /team_events/{id} {
+      allow read: if teamRowReadable();
+      allow create: if incoming().id == id && teamRowWritable();
+      allow update: if (teamRowReadable() && teamRowWritable())
+        || (signedIn() && nulledOrphan('created_by', 'profiles'));
+      allow delete: if teamRowReadable() || (signedIn() && parentGone('team_id', 'teams'));
+    }
     match /risks/{id} {
       allow read: if teamRowReadable();
       allow create: if incoming().id == id && teamRowWritable();
@@ -281,6 +291,18 @@ service cloud.firestore {
         && isMember(incoming().team_id);
       allow delete: if signedIn()
         && (isMember(resource.data.team_id) || parentGone('team_id', 'teams'));
+    }
+
+    // Who is writing in the notebook right now: members set their own row.
+    match /notebook_presence/{id} {
+      allow get: if signedIn() && (resource == null || isTeacher()
+        || isMember(resource.data.team_id));
+      allow list: if teamRowReadable();
+      allow create, update: if signedIn()
+        && keyed(id, incoming().team_id + '_' + incoming().user_id)
+        && incoming().user_id == uid() && isMember(incoming().team_id);
+      allow delete: if signedIn() && (resource.data.user_id == uid()
+        || parentGone('team_id', 'teams') || parentGone('user_id', 'profiles'));
     }
 
     match /mission_completions/{id} {

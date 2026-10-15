@@ -1,38 +1,52 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CheckCircle2, Target } from "lucide-react";
+import { CheckCircle2, NotebookPen, Target } from "lucide-react";
 import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { parseMissionDescription } from "@/lib/mission-attachment";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { MissionNotes } from "@/components/mission-feedback";
 import { VocabText } from "@/components/vocab-text";
 
-/**
- * Shown in the Design Notebook when a student (or teacher) arrives from a
- * posted mission link. Lets the team check the mission off right here; the
- * status is the same record the Missions pages read.
- */
-export function PostedMissionBanner({ missionId }: { missionId: string }) {
-  const { user, role } = useAuth();
-  const { data: team } = useMyTeam();
-  const queryClient = useQueryClient();
-
-  const mission = useQuery({
+/** A posted mission (the daily brief), or null when `missionId` isn't one. */
+export function usePostedMission(missionId: string | undefined) {
+  return useQuery({
     queryKey: ["posted-mission", missionId],
+    enabled: !!missionId,
     queryFn: async () => {
       const { data, error } = await db
         .from("missions")
         .select("id, title, description, stage, due_date")
-        .eq("id", missionId)
+        .eq("id", missionId!)
         .maybeSingle();
       if (error) throw error;
       return data;
     },
   });
+}
+
+/**
+ * Shown in the Design Notebook when a student (or teacher) arrives from a
+ * posted mission link. Lets the team check the mission off right here; the
+ * status is the same record the Missions pages read.
+ */
+export function PostedMissionBanner({
+  missionId,
+  onRespond,
+}: {
+  missionId: string;
+  /** Opens a response to the matching notebook prompt, when there is one. */
+  onRespond?: () => void;
+}) {
+  const { user, role } = useAuth();
+  const { data: team } = useMyTeam();
+  const queryClient = useQueryClient();
+
+  const mission = usePostedMission(missionId);
 
   const completion = useQuery({
     queryKey: ["posted-mission-completion", missionId, team?.id],
@@ -124,6 +138,11 @@ export function PostedMissionBanner({ missionId }: { missionId: string }) {
           </p>
           <MissionNotes missionId={missionId} teamId={team?.id} />
         </div>
+        {onRespond && role !== "teacher" && (
+          <Button size="sm" className="shrink-0" onClick={onRespond}>
+            <NotebookPen className="mr-1.5 h-4 w-4" /> Respond
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

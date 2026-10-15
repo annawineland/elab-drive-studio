@@ -536,6 +536,41 @@ export type Database = {
         };
         Relationships: [];
       };
+      notebook_presence: {
+        Row: {
+          entry_id: string | null;
+          id: string;
+          mission_id: string | null;
+          team_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          entry_id?: string | null;
+          id?: string;
+          mission_id?: string | null;
+          team_id: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          entry_id?: string | null;
+          id?: string;
+          mission_id?: string | null;
+          team_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notebook_presence_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       notifications: {
         Row: {
           actor_id: string | null;
@@ -1056,6 +1091,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "team_codes_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      team_events: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          event_date: string;
+          id: string;
+          notes: string;
+          team_id: string;
+          title: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          event_date?: string;
+          id?: string;
+          notes?: string;
+          team_id: string;
+          title: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          event_date?: string;
+          id?: string;
+          notes?: string;
+          team_id?: string;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "team_events_team_id_fkey";
             columns: ["team_id"];
             isOneToOne: false;
             referencedRelation: "teams";

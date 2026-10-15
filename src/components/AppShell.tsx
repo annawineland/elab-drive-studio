@@ -40,7 +40,7 @@ const TEAM_SECTION: NavSection = {
     { to: "/team", label: "Team Dashboard", icon: Users, exact: true },
     { to: "/board", label: "Kanban Board", icon: KanbanSquare },
     { to: "/minutes", label: "Meeting Minutes", icon: ClipboardList },
-    { to: "/risks", label: "Risk Register", icon: AlertTriangle },
+    
   ],
 };
 

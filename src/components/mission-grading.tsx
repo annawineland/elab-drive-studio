@@ -107,11 +107,16 @@ export function MissionGradingPanel({
   missionTitle,
   teamId,
   isTeacher,
+  heading = "Scoring rubric",
+  className,
 }: {
   missionId: string;
   missionTitle: string;
+  /** Label above the criteria; the notebook lists every mission's rubric by title. */
+  heading?: string;
   teamId?: string | null;
   isTeacher: boolean;
+  className?: string;
 }) {
   const criteriaQuery = useMissionCriteria();
   const gradesQuery = useMissionGrades();
@@ -131,11 +136,12 @@ export function MissionGradingPanel({
   const possible = criteria.reduce((sum, c) => sum + c.points, 0);
 
   return (
-    <div className="mt-3 rounded-md border border-border/70 bg-muted/30 p-3">
+    <div className={cn("mt-3 rounded-md border border-border/70 bg-muted/30 p-3", className)}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           <ClipboardCheck className="h-3.5 w-3.5" />
-          Scoring rubric{possible > 0 ? ` — ${pointsLabel(possible)}` : ""}
+          {heading}
+          {possible > 0 ? ` — ${pointsLabel(possible)}` : ""}
         </p>
         {isTeacher && (
           <div className="flex flex-wrap items-center gap-1">

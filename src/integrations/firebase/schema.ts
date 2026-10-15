@@ -237,6 +237,33 @@ export const TABLES: Record<string, TableDef> = {
     },
     references: [cascade("team_id", "teams"), setNull("created_by", USERS)],
   },
+  // Who on a team has a notebook response open right now, one row per member.
+  // Rows older than a minute are stale (the tab closed without clearing it).
+  notebook_presence: {
+    columns: {
+      id: { type: "text" },
+      team_id: { type: "uuid" },
+      user_id: { type: "uuid" },
+      mission_id: optional("uuid"),
+      entry_id: optional("uuid"),
+      updated_at: updatedAt,
+    },
+    key: ["team_id", "user_id"],
+    touch: true,
+    references: [cascade("team_id", "teams"), cascade("user_id", USERS)],
+  },
+  team_events: {
+    columns: {
+      id,
+      team_id: { type: "uuid" },
+      title: text(),
+      event_date: { type: "date", default: today },
+      notes: text(""),
+      created_by: optional("uuid"),
+      created_at: createdAt,
+    },
+    references: [cascade("team_id", "teams"), setNull("created_by", USERS)],
+  },
   risks: {
     columns: {
       id,

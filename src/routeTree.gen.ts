@@ -22,7 +22,6 @@ import { Route as AuthenticatedNotebookRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
 import { Route as AuthenticatedResourcesRouteImport } from './routes/_authenticated/resources'
-import { Route as AuthenticatedRisksRouteImport } from './routes/_authenticated/risks'
 import { Route as AuthenticatedRubricsRouteImport } from './routes/_authenticated/rubrics'
 import { Route as AuthenticatedStudioRouteImport } from './routes/_authenticated/studio'
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
@@ -104,11 +103,6 @@ const AuthenticatedRequestsRoute = AuthenticatedRequestsRouteImport.update({
 const AuthenticatedResourcesRoute = AuthenticatedResourcesRouteImport.update({
   id: '/resources',
   path: '/resources',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedRisksRoute = AuthenticatedRisksRouteImport.update({
-  id: '/risks',
-  path: '/risks',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRubricsRoute = AuthenticatedRubricsRouteImport.update({
@@ -224,7 +218,6 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/requests': typeof AuthenticatedRequestsRoute
   '/resources': typeof AuthenticatedResourcesRouteWithChildren
-  '/risks': typeof AuthenticatedRisksRoute
   '/rubrics': typeof AuthenticatedRubricsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/team': typeof AuthenticatedTeamRoute
@@ -255,7 +248,6 @@ export interface FileRoutesByTo {
   '/notebook': typeof AuthenticatedNotebookRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/requests': typeof AuthenticatedRequestsRoute
-  '/risks': typeof AuthenticatedRisksRoute
   '/rubrics': typeof AuthenticatedRubricsRoute
   '/studio': typeof AuthenticatedStudioRoute
   '/team': typeof AuthenticatedTeamRoute
@@ -289,7 +281,6 @@ export interface FileRoutesById {
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
   '/_authenticated/resources': typeof AuthenticatedResourcesRouteWithChildren
-  '/_authenticated/risks': typeof AuthenticatedRisksRoute
   '/_authenticated/rubrics': typeof AuthenticatedRubricsRoute
   '/_authenticated/studio': typeof AuthenticatedStudioRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
@@ -323,7 +314,6 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/requests'
     | '/resources'
-    | '/risks'
     | '/rubrics'
     | '/studio'
     | '/team'
@@ -354,7 +344,6 @@ export interface FileRouteTypes {
     | '/notebook'
     | '/notifications'
     | '/requests'
-    | '/risks'
     | '/rubrics'
     | '/studio'
     | '/team'
@@ -387,7 +376,6 @@ export interface FileRouteTypes {
     | '/_authenticated/notifications'
     | '/_authenticated/requests'
     | '/_authenticated/resources'
-    | '/_authenticated/risks'
     | '/_authenticated/rubrics'
     | '/_authenticated/studio'
     | '/_authenticated/team'
@@ -506,13 +494,6 @@ declare module '@tanstack/react-router' {
       path: '/resources'
       fullPath: '/resources'
       preLoaderRoute: typeof AuthenticatedResourcesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/risks': {
-      id: '/_authenticated/risks'
-      path: '/risks'
-      fullPath: '/risks'
-      preLoaderRoute: typeof AuthenticatedRisksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/rubrics': {
@@ -664,7 +645,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
   AuthenticatedResourcesRoute: typeof AuthenticatedResourcesRouteWithChildren
-  AuthenticatedRisksRoute: typeof AuthenticatedRisksRoute
   AuthenticatedRubricsRoute: typeof AuthenticatedRubricsRoute
   AuthenticatedStudioRoute: typeof AuthenticatedStudioRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
@@ -690,7 +670,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
   AuthenticatedResourcesRoute: AuthenticatedResourcesRouteWithChildren,
-  AuthenticatedRisksRoute: AuthenticatedRisksRoute,
   AuthenticatedRubricsRoute: AuthenticatedRubricsRoute,
   AuthenticatedStudioRoute: AuthenticatedStudioRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,

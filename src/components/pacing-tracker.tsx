@@ -1,4 +1,6 @@
+import { Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { AlertTriangle, CalendarClock, Clock } from "lucide-react";
 import { db } from "@/integrations/firebase/client";
 import { pacingWeeksQueryOptions, weekStatus, type PacingWeek } from "@/lib/pacing-queries";
@@ -55,7 +57,7 @@ function useTeamDueMissions(teamId?: string) {
       if (teamRes.error) throw teamRes.error;
       const modId = teamRes.data?.mod_id ?? null;
 
-      let q = db.from("missions").select("id, title, due_date, past_due_at");
+      let q = db.from("missions").select("id, title, stage, due_date, past_due_at");
       if (modId) q = q.or(`mod_id.is.null,mod_id.eq.${modId}`);
       const [missionsRes, doneRes] = await Promise.all([
         q,
@@ -113,6 +115,22 @@ function expectedStage(weeks: PacingWeek[], week: PacingWeek | null): string | n
     if (s) return s;
   }
   return null;
+}
+
+/** Comma-separated mission titles, each opening that mission in the notebook. */
+function MissionLinks({ missions }: { missions: { id: string; title: string; stage: string }[] }) {
+  return missions.map((m, i) => (
+    <Fragment key={m.id}>
+      {i > 0 && ", "}
+      <Link
+        to="/notebook"
+        search={m.stage ? { stage: m.stage, mission: m.id } : { mission: m.id }}
+        className="underline underline-offset-2 hover:text-foreground"
+      >
+        {m.title}
+      </Link>
+    </Fragment>
+  ));
 }
 
 /**
@@ -202,14 +220,16 @@ export function PacingTracker({
           <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           <span>
             {late.length} past-due mission{late.length > 1 ? "s" : ""} not checked off:{" "}
-            {late.map((m) => m.title).join(", ")}
+            <MissionLinks missions={late} />
           </span>
         </p>
       )}
       {dueSoon.length > 0 && (
         <p className="mt-1.5 flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400">
           <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-          <span>Due today or tomorrow: {dueSoon.map((m) => m.title).join(", ")}</span>
+          <span>
+            Due today or tomorrow: <MissionLinks missions={dueSoon} />
+          </span>
         </p>
       )}
     </div>

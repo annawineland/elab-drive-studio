@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   ArrowRight,
   CalendarClock,
-  BookOpen,
   FileText,
   FolderOpen,
   Inbox,
@@ -18,13 +17,7 @@ import {
 import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyTeam } from "@/hooks/use-my-team";
-import {
-  WORKFLOW_STAGES,
-  stageLabel,
-  stageIndex,
-  missionDueStatus,
-  DUE_TONE_CLASS,
-} from "@/lib/studio";
+import { stageLabel, missionDueStatus, DUE_TONE_CLASS } from "@/lib/studio";
 import { PageHeader, StatCard, StageBadge, EmptyState } from "@/components/studio-ui";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -140,15 +133,6 @@ function StudioHome() {
       .eq("user_id", user!.id)
       .eq("status", "pending"),
   );
-  const openTasks = useCount(`tasks-${team?.id ?? "none"}`, () =>
-    team
-      ? db
-          .from("tasks")
-          .select("id", { count: "exact", head: true })
-          .eq("team_id", team.id)
-          .neq("status", "done")
-      : Promise.resolve({ count: 0, error: null }),
-  );
 
   const recentFeedback = useQuery({
     queryKey: ["feedback-recent", user!.id, team?.id],
@@ -219,7 +203,6 @@ function StudioHome() {
   });
 
   const firstName = fullName.split(" ")[0] || "Engineer";
-  const stageIdx = team ? Math.max(0, stageIndex(team.current_stage)) : 0;
 
   return (
     <div className="space-y-8">
@@ -247,63 +230,6 @@ function StudioHome() {
           loading={teamLoading || myMod.isLoading}
         />
       )}
-
-      {/* Stage tracker */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Target className="h-4 w-4 text-primary" />
-            Design workflow progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {teamLoading ? (
-            <Skeleton className="h-8 w-full" />
-          ) : (
-            <ol className="grid grid-cols-2 gap-1.5 sm:grid-cols-5 lg:grid-cols-10">
-              {WORKFLOW_STAGES.map((s, i) => (
-                <li key={s.key}>
-                  <Link
-                    to="/notebook"
-                    search={{ stage: s.key }}
-                    className={cn(
-                      "block rounded-md border px-2 py-1.5 text-center transition-colors hover:border-primary/60",
-                      i === stageIdx && team
-                        ? "border-primary bg-primary/10"
-                        : team && i < stageIdx
-                          ? "border-border bg-muted/60"
-                          : "border-dashed border-border",
-                    )}
-                    title={`${s.label} — open in Design Notebook`}
-                  >
-                    <span
-                      className={cn(
-                        "block font-mono text-[10px] font-bold",
-                        i === stageIdx && team ? "text-primary" : "text-muted-foreground",
-                      )}
-                    >
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
-                    <span
-                      className={cn(
-                        "block truncate text-[11px] font-medium",
-                        team && i <= stageIdx ? "text-foreground" : "text-muted-foreground",
-                      )}
-                    >
-                      {s.label}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ol>
-          )}
-          {!team && !teamLoading && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              Join a team to track your stage through the engineering design process.
-            </p>
-          )}
-        </CardContent>
-      </Card>
 
       {/* My mod + classmates */}
       {role === "student" && (
@@ -492,12 +418,11 @@ function StudioHome() {
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-1">
           <StatCard label="My entries" value={entryCount.data ?? "—"} icon={NotebookPen} />
           <StatCard label="Evidence items" value={evidenceCount.data ?? "—"} icon={FolderOpen} />
-          <StatCard label="Open team tasks" value={openTasks.data ?? "—"} icon={Users} />
           <StatCard label="Pending requests" value={requestCount.data ?? "—"} icon={Inbox} />
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div>
         {/* Recent feedback */}
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
@@ -523,38 +448,6 @@ function StudioHome() {
                 </p>
               </div>
             ))}
-          </CardContent>
-        </Card>
-
-        {/* Quick actions */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <BookOpen className="h-4 w-4 text-primary" />
-              Quick actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-2 sm:grid-cols-2">
-            <Button variant="outline" className="justify-start" asChild>
-              <Link to="/notebook">
-                <NotebookPen className="mr-2 h-4 w-4" /> New log entry
-              </Link>
-            </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <Link to="/evidence">
-                <FolderOpen className="mr-2 h-4 w-4" /> Add evidence
-              </Link>
-            </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <Link to="/board">
-                <Users className="mr-2 h-4 w-4" /> Team board
-              </Link>
-            </Button>
-            <Button variant="outline" className="justify-start" asChild>
-              <Link to="/requests">
-                <Inbox className="mr-2 h-4 w-4" /> New request
-              </Link>
-            </Button>
           </CardContent>
         </Card>
       </div>

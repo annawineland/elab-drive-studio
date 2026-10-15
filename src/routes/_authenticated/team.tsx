@@ -16,15 +16,14 @@ import { db } from "@/integrations/firebase/client";
 import { useMyTeam } from "@/hooks/use-my-team";
 import { useTeamMembers } from "@/hooks/use-team-members";
 import { WORKFLOW_STAGES } from "@/lib/studio";
-import { PageHeader, EmptyState, StatCard, StatusBadge } from "@/components/studio-ui";
+import { PageHeader, EmptyState, StatCard } from "@/components/studio-ui";
 import { PacingTracker } from "@/components/pacing-tracker";
-import { TeamPacingCard } from "@/components/team-pacing-card";
+import { TeamCalendar } from "@/components/team-calendar";
 import { TeamContributions } from "@/components/team-contributions";
 import { TeamMissionGrades } from "@/components/team-mission-grades";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -225,7 +224,7 @@ function TeamPage() {
 
       <PacingTracker stage={team.current_stage} teamId={team.id} />
 
-      <TeamPacingCard teamId={team.id} />
+      <TeamCalendar teamId={team.id} modId={team.mod_id} />
 
       <TeamContributions teamId={team.id} />
 
@@ -297,25 +296,6 @@ function TeamPage() {
             ))}
           </CardContent>
         </Card>
-      </div>
-
-      {/* Quick links */}
-      <div className="grid gap-2 sm:grid-cols-3">
-        <Button variant="outline" className="justify-start" asChild>
-          <Link to="/board">
-            <KanbanSquare className="mr-2 h-4 w-4" /> Open kanban board
-          </Link>
-        </Button>
-        <Button variant="outline" className="justify-start" asChild>
-          <Link to="/minutes">
-            <ClipboardList className="mr-2 h-4 w-4" /> Log meeting minutes
-          </Link>
-        </Button>
-        <Button variant="outline" className="justify-start" asChild>
-          <Link to="/risks">
-            <StatusBadge status="open" className="mr-2" /> Review risk register
-          </Link>
-        </Button>
       </div>
     </div>
   );

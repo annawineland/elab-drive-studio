@@ -404,14 +404,17 @@ export function createDataClient(store: Store, accessSource: AccessSource): Data
     }
   }
 
-  /** notify_teachers_of_mission_entry: tell every teacher a student posted or edited mission work. */
+  /**
+   * notify_teachers_of_mission_entry: tell every teacher a student posted or edited mission work.
+   * The actor is whoever made the change, which may be a teammate of the entry's author.
+   */
   async function notifyTeachersOfMissionEntry(before: Row | null, entry: Row, access: Access) {
     if (entry.mission_id == null || access.isTeacher) return;
     if (before && before.title === entry.title && before.content === entry.content) return;
 
     const gets: Gets = new Map();
     const [actor, team, mission, teachers] = await Promise.all([
-      cachedGet(gets, "profiles", String(entry.user_id)),
+      cachedGet(gets, "profiles", access.uid),
       entry.team_id == null ? null : cachedGet(gets, "teams", String(entry.team_id)),
       cachedGet(gets, "stage_missions", String(entry.mission_id)),
       fetchRows("user_roles", [{ column: "role", op: "eq", value: "teacher" }], access),
@@ -441,7 +444,7 @@ export function createDataClient(store: Store, accessSource: AccessSource): Data
             id,
             recipient_id: teacher.user_id,
             kind,
-            actor_id: entry.user_id,
+            actor_id: access.uid,
             team_id: entry.team_id ?? null,
             entry_id: entry.id,
             mission_id: entry.mission_id,

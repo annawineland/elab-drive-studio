@@ -60,6 +60,8 @@ export function scopeFor(table: string, access: Access): Scope {
     case "sprints":
     case "tasks":
     case "meeting_minutes":
+    case "team_events":
+    case "notebook_presence":
     case "risks":
     case "team_pacing_weeks":
     case "mission_completions":

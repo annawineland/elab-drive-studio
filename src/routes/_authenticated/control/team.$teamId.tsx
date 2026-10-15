@@ -6,6 +6,7 @@ import { db } from "@/integrations/firebase/client";
 import { TASK_STATUSES } from "@/lib/studio";
 import { PageHeader, EmptyState, StatusBadge, StageBadge } from "@/components/studio-ui";
 import { TeacherOnly } from "@/components/teacher-only";
+import { TeamCalendar } from "@/components/team-calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -111,6 +112,8 @@ function TeamWorkspacePage() {
 
         {!data.isLoading && team && (
           <>
+            <TeamCalendar teamId={teamId} modId={team.mod_id} />
+
             {/* Sprints */}
             <section className="space-y-3">
               <h2 className="text-label text-muted-foreground">Sprints</h2>
