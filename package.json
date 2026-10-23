@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "firebase:import": "tsx scripts/firebase/import.ts",
     "firebase:set-teacher": "tsx scripts/firebase/set-teacher.ts",
-    "firebase:reset-notebook": "tsx scripts/firebase/reset-notebook.ts"
+    "firebase:reset-notebook": "tsx scripts/firebase/reset-notebook.ts",
+    "firebase:sync-pacing": "tsx scripts/firebase/sync-pacing.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
