@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { GraduationCap, Loader2, Compass, Wrench } from "lucide-react";
+import { GraduationCap, Loader2, Compass, LogOut, Wrench } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,9 +21,13 @@ export const Route = createFileRoute("/welcome")({
 });
 
 function WelcomePage() {
-  const { user, role, loading, refresh } = useAuth();
+  const { user, role, loading, refresh, signOut } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [picked, setPicked] = useState<"student" | "teacher" | null>(null);
+  // Teacher roles are granted by an admin (scripts/firebase/set-teacher.ts); the
+  // rules only let a new account make itself a student.
+  const [teacherHelp, setTeacherHelp] = useState(false);
   const [joinCode, setJoinCode] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -35,6 +40,13 @@ function WelcomePage() {
     if (role === "teacher") navigate({ to: "/control", replace: true });
     else if (role === "student") navigate({ to: "/studio", replace: true });
   }, [loading, user, role, navigate]);
+
+  async function switchAccount() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   async function chooseRole(nextRole: "student" | "teacher") {
     if (!user) return;
@@ -116,7 +128,7 @@ function WelcomePage() {
                   </p>
                 </button>
                 <button
-                  onClick={() => void chooseRole("teacher")}
+                  onClick={() => setTeacherHelp(true)}
                   disabled={busy}
                   className="group rounded-xl border border-border bg-background p-5 text-left transition-all hover:border-primary hover:shadow-md disabled:opacity-50"
                 >
@@ -131,6 +143,18 @@ function WelcomePage() {
                   </p>
                 </button>
               </div>
+              {teacherHelp && (
+                <div className="mt-4 rounded-lg border border-primary/40 bg-primary/5 p-3 text-sm">
+                  <p className="font-medium text-foreground">
+                    Teacher access is set up for specific accounts.
+                  </p>
+                  <p className="mt-1 text-muted-foreground">
+                    If you already use the studio as a teacher, you may be signed in with a
+                    different email than usual — use a different account below. Otherwise, ask the
+                    studio's administrator to make <strong>{user.email}</strong> a teacher.
+                  </p>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -168,6 +192,17 @@ function WelcomePage() {
               </div>
             </>
           )}
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-xs text-sidebar-foreground/70">
+          <span>Signed in as {user.email}</span>
+          <button
+            type="button"
+            onClick={() => void switchAccount()}
+            className="inline-flex items-center gap-1 font-medium text-sidebar-accent-foreground underline-offset-4 hover:underline"
+          >
+            <LogOut className="h-3 w-3" /> Use a different account
+          </button>
         </div>
       </div>
     </div>
