@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ClipboardCheck, GraduationCap, Lightbulb, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ClipboardCheck, GraduationCap, Lightbulb, Plus, Trash2 } from "lucide-react";
 import { db } from "@/integrations/firebase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -192,6 +193,10 @@ export function MissionGradingPanel({
             </p>
           )}
         </div>
+      )}
+
+      {isTeacher && (
+        <ModelAnswerDropdown missionId={missionId} onEdit={() => setExemplarOpen(true)} />
       )}
 
       {isTeacher && (
@@ -439,6 +444,43 @@ function RubricEditorDialog({
 }
 
 /* ---------------- Teacher: model answer ---------------- */
+
+/** The mission's model answer, folded away until opened (teachers only, like the data). */
+function ModelAnswerDropdown({ missionId, onEdit }: { missionId: string; onEdit: () => void }) {
+  const [open, setOpen] = useState(false);
+  const exemplar = useExemplar(missionId, open);
+  const content = exemplar.data?.content?.trim();
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="mt-3">
+      <CollapsibleTrigger asChild>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between rounded-md border border-amber-300/60 bg-amber-50/60 px-2.5 py-1.5 text-left text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-100/70 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200"
+        >
+          <span className="flex items-center gap-1.5">
+            <Lightbulb className="h-3.5 w-3.5" /> Model answer
+          </span>
+          <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-1.5 rounded-md border bg-background p-2.5">
+        {exemplar.isLoading ? (
+          <p className="text-xs text-muted-foreground">Loading…</p>
+        ) : content ? (
+          <p className="whitespace-pre-wrap text-xs leading-relaxed">{content}</p>
+        ) : (
+          <p className="text-xs text-muted-foreground">No model answer yet.</p>
+        )}
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span className="text-[11px] text-muted-foreground">Only teachers can see this.</span>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={onEdit}>
+            {content ? "Edit" : "Write one"}
+          </Button>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
 
 function useExemplar(missionId: string, enabled: boolean) {
   return useQuery({

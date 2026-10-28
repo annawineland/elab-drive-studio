@@ -25,7 +25,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { UserImportRecord } from "firebase-admin/auth";
 import { docId, TABLES, type ColumnDef } from "../../src/integrations/firebase/schema";
-import { argValue, argValues, connect } from "./common";
+import { argValue, argValues, connect, parseCsv } from "./common";
 
 type Row = Record<string, unknown>;
 
@@ -41,47 +41,6 @@ if (!exportDir && !useSeed) {
 }
 
 // ------------------------------------------------------------- reading ---
-
-/**
- * RFC 4180 CSV: quoted fields may hold commas, quotes ("") and newlines.
- * Like Postgres, an unquoted empty field is NULL and "" is an empty string.
- */
-function parseCsv(text: string): Row[] {
-  const records: Array<Array<string | null>> = [];
-  let field = "";
-  let wasQuoted = false;
-  let record: Array<string | null> = [];
-  let quoted = false;
-  const endField = () => {
-    record.push(field === "" && !wasQuoted ? null : field);
-    field = "";
-    wasQuoted = false;
-  };
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i]!;
-    if (quoted) {
-      if (char === '"' && text[i + 1] === '"') {
-        field += '"';
-        i++;
-      } else if (char === '"') quoted = false;
-      else field += char;
-    } else if (char === '"') quoted = wasQuoted = true;
-    else if (char === ",") endField();
-    else if (char === "\n" || char === "\r") {
-      if (char === "\r" && text[i + 1] === "\n") i++;
-      endField();
-      records.push(record);
-      record = [];
-    } else field += char;
-  }
-  if (field !== "" || wasQuoted || record.length) {
-    endField();
-    records.push(record);
-  }
-  const [header, ...rows] = records.filter((r) => r.length > 1 || r[0] != null);
-  if (!header) return [];
-  return rows.map((r) => Object.fromEntries(header.map((name, i) => [String(name).trim(), r[i] ?? null])));
-}
 
 function readTableFile(dir: string, table: string): Row[] | undefined {
   for (const ext of ["json", "csv"]) {
