@@ -5,7 +5,7 @@ import {
   Check,
   Copy,
   GraduationCap,
-  KanbanSquare,
+  CalendarDays,
   NotebookPen,
   Plus,
   Trash2,
@@ -398,7 +398,7 @@ function TeamsPage() {
                           </Button>
                           <Button variant="outline" size="sm" asChild>
                             <Link to="/control/team/$teamId" params={{ teamId: t.id }}>
-                              <KanbanSquare className="mr-1.5 h-4 w-4" /> Board & minutes
+                              <CalendarDays className="mr-1.5 h-4 w-4" /> Calendar & board
                             </Link>
                           </Button>
                         </div>

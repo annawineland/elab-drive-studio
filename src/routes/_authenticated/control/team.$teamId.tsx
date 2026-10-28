@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ArrowLeft, ClipboardList, KanbanSquare, NotebookPen } from "lucide-react";
@@ -9,17 +9,23 @@ import { TeacherOnly } from "@/components/teacher-only";
 import { TeamCalendar } from "@/components/team-calendar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/control/team/$teamId")({
   head: () => ({
     meta: [
-      { title: "Team Board & Minutes — Mission Control" },
+      { title: "Team Calendar & Board — Mission Control" },
       {
         name: "description",
-        content:
-          "Read-only view of a team's kanban board, sprints, and meeting minutes for the teacher.",
+        content: "A team's calendar, kanban board, sprints, and meeting minutes for the teacher.",
       },
-      { property: "og:title", content: "Team Board & Minutes — Mission Control" },
+      { property: "og:title", content: "Team Calendar & Board — Mission Control" },
       {
         property: "og:description",
         content: "See how a team is planning work and what they decided in meetings.",
@@ -33,6 +39,20 @@ export const Route = createFileRoute("/_authenticated/control/team/$teamId")({
 
 function TeamWorkspacePage() {
   const { teamId } = Route.useParams();
+  const navigate = useNavigate();
+
+  // Every team, for switching between them without going back to the list.
+  const allTeams = useQuery({
+    queryKey: ["control-team-switcher"],
+    queryFn: async () => {
+      const { data, error } = await db
+        .from("teams")
+        .select("id, name, mods(name)")
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const data = useQuery({
     queryKey: ["team-workspace", teamId],
@@ -84,7 +104,7 @@ function TeamWorkspacePage() {
       <div className="space-y-6">
         <PageHeader
           eyebrow={team?.mods?.name ?? "Mission Control"}
-          title={team ? `${team.name} — board & minutes` : "Team workspace"}
+          title={team ? `${team.name} — calendar & board` : "Team workspace"}
           description={
             team
               ? [team.client_name && `Client: ${team.client_name}`, team.project_focus]
@@ -93,7 +113,25 @@ function TeamWorkspacePage() {
               : undefined
           }
           actions={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Select
+                value={teamId}
+                onValueChange={(id) =>
+                  void navigate({ to: "/control/team/$teamId", params: { teamId: id } })
+                }
+              >
+                <SelectTrigger className="h-9 w-56" aria-label="Switch team">
+                  <SelectValue placeholder="Switch team" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(allTeams.data ?? []).map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                      {t.mods?.name ? ` · ${t.mods.name}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button variant="outline" size="sm" asChild>
                 <Link to="/control/teams">
                   <ArrowLeft className="mr-1.5 h-4 w-4" /> Teams
